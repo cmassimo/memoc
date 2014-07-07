@@ -6,34 +6,33 @@
 #ifndef INSTANCE_H
 #define INSTANCE_H
 
-// // data
-// const int n = 6;
-// const int a = 30;
+#include <vector>
+using namespace std;
 
-// const int C[a*2] = { 
-//    0,  2, 9,  9,  2,  7,
-//    2,  0, 10,  4,  4,  3,
-//    9, 10,  0,  1,  5, 11,
-//    9,   4,  1,  0,  4, 10,
-//    2,   4,  5,  4,  0, 12,
-//    7,   3, 11, 10, 12,  0
-// };
+class Node
+{
+    public:
+        double x;
+        double y;
 
-// const int start_idx = 0;
+        Node(double a, double b):
+            x(a), y(b) {}
+};
 
 class Instance
 {
     public:
-        int nodes;
-        int arcs;
-        int cost_upper_bound;
+        int nodes_card;
+        int x_bound;
+        int y_bound;
         int start_idx;
+        vector<Node> nodes;
+        double* costs;
 
-        Instance(int n, int a, int cub, int si =0):
-          nodes(n), arcs(a), cost_upper_bound(cub), start_idx(si) {}
+        Instance(int n, int a, int b, int si =0):
+          nodes_card(n), x_bound(a), y_bound(b), start_idx(si) {}
 
-        void build_costs_matrix(double* C);
-
+        void build_graph();
 };
 
 #endif

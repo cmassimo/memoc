@@ -20,7 +20,7 @@ char name[NAME_SIZE];
 Instance* instance;
 
 int get_var_index(int c, int r) {
-	const int n = instance->nodes;
+	const int n = instance->nodes_card;
 	if (c == r) return -1;
 
 	int idx = 0;
@@ -35,12 +35,13 @@ int get_var_index(int c, int r) {
 	
 void setupLP(Instance* inst, CEnv env, Prob lp, int & numVars)
 {
-	const int n = inst->nodes;
-	// const int a = inst->arcs;
+	const int n = inst->nodes_card;
 	const int start_idx = inst->start_idx;
 
-	double C[n*n];
-	inst->build_costs_matrix(&C[0]);
+    cout << "build_graph();" << endl;
+
+	inst->build_graph();
+	double* C = inst->costs;
 
 	// add x_i_j vars
 	for (int i = 0; i < n; i++) {
@@ -222,7 +223,7 @@ int main (int argc, char const *argv[])
 		cout << atoi(argv[2]) << endl;
 		cout << atoi(argv[3]) << endl;
 
-		instance = new Instance(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+		instance = new Instance(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), 0);
 
 		// init
 		DECL_ENV( env );

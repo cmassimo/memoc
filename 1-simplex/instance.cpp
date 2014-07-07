@@ -6,28 +6,46 @@
 #include "instance.h"
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include <iostream>
 
-void Instance::build_costs_matrix(double* C) {
+using namespace std;
+
+void Instance::build_graph() {
     srand (time(NULL));
 
-    for (int i = 0; i < nodes; i++) {
-        for (int j = 0; j < nodes; j++) {
-            double cost = (double) (rand() % cost_upper_bound);
+    this->costs = new double[this->nodes_card*this->nodes_card];
+    
+    // casually generated nodes inside some bounds
+    for (int i = 0; i < nodes_card; i++) {
+        double x = (double) (rand() % x_bound);
+        double y = (double) (rand() % y_bound);
 
-            C[i*nodes+j] = cost;
-            C[j*nodes+i] = cost;
+        Node* node = new Node(x, y);
+        this->nodes.push_back(*node);
+    }
 
-            if (i == j)
-                C[i*nodes+j] = 0.0;
+    cout << "calculate euclidean distances" << endl;
+    // calculate euclidean distances
+        
+    cout << "nodes: " << this->nodes.size() << endl;
+
+    for (int i = 0; i < nodes_card; i++) {
+        for (int j = 0; j < nodes_card; j++) {
+            Node fnode = this->nodes[i];
+            cout << "fnode.x: " << fnode.x << endl;
+            Node snode = this->nodes[j];
+            cout << "snode.x: " << snode.x << endl;
+
+            //somma dei quadrati delle diff tra le coord
+            double cost = sqrt( pow((snode.x-fnode.x), 2) + pow((snode.y-fnode.y), 2) );
+
+            this->costs[i*nodes_card+j] = cost;
+            this->costs[j*nodes_card+i] = cost;
+            cout << "cost: " << cost << endl;
         }
     }
 
-    for (int i = 0; i < nodes*nodes; i++) {
-        std::cout << C[i] << ", ";
-        if (i % nodes == nodes-1)
-            std::cout << std::endl;
-    }
 }   
 
 
