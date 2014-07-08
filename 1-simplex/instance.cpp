@@ -11,6 +11,12 @@
 
 using namespace std;
 
+double fRand(double fMin, double fMax)
+{
+    double f = (double)rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
+}
+
 void Instance::build_graph() {
     srand (time(NULL));
 
@@ -18,24 +24,21 @@ void Instance::build_graph() {
     
     // casually generated nodes inside some bounds
     for (int i = 0; i < nodes_card; i++) {
-        double x = (double) (rand() % x_bound);
-        double y = (double) (rand() % y_bound);
+        double x = fRand(0.0, x_bound);
+        double y = fRand(0.0, y_bound);
 
         Node* node = new Node(x, y);
         this->nodes.push_back(*node);
     }
 
-    cout << "calculate euclidean distances" << endl;
     // calculate euclidean distances
-        
-    cout << "nodes: " << this->nodes.size() << endl;
 
     for (int i = 0; i < nodes_card; i++) {
         for (int j = 0; j < nodes_card; j++) {
             Node fnode = this->nodes[i];
-            cout << "fnode.x: " << fnode.x << endl;
+            cout << "node " << i << ": (" << fnode.x << "," << fnode.y << ")" << endl;
             Node snode = this->nodes[j];
-            cout << "snode.x: " << snode.x << endl;
+            cout << "node " << j << ": (" << snode.x << "," << snode.y << ")" << endl;
 
             //somma dei quadrati delle diff tra le coord
             double cost = sqrt( pow((snode.x-fnode.x), 2) + pow((snode.y-fnode.y), 2) );

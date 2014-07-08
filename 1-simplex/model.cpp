@@ -1,6 +1,6 @@
 /**
  * @file model.cpp
- * @brief ATSP model and main for simulation
+ * @brief STSP model and main for simulation
  */
 
 #include <cstdio>
@@ -8,6 +8,9 @@
 #include <vector>
 #include "cpxmacro.h"
 #include "instance.h"
+
+#include <ctime>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -37,8 +40,6 @@ void setupLP(Instance* inst, CEnv env, Prob lp, int & numVars)
 {
 	const int n = inst->nodes_card;
 	const int start_idx = inst->start_idx;
-
-    cout << "build_graph();" << endl;
 
 	inst->build_graph();
 	double* C = inst->costs;
@@ -210,7 +211,7 @@ void setupLP(Instance* inst, CEnv env, Prob lp, int & numVars)
 	// }
 
 	// print (debug)
-	CHECKED_CPX_CALL( CPXwriteprob, env, lp, "atsp.lp", 0 );
+	CHECKED_CPX_CALL( CPXwriteprob, env, lp, "stsp.lp", 0 );
 }
 
 
@@ -229,6 +230,11 @@ int main (int argc, char const *argv[])
 		DECL_ENV( env );
 		DECL_PROB( env, lp );
 
+        clock_t t1,t2;
+        t1 = clock();
+        struct timeval  tv1, tv2;
+        gettimeofday(&tv1, NULL);
+
 		// setup LP
 		int numVars;
 		setupLP(instance, env, lp, numVars);
@@ -236,29 +242,37 @@ int main (int argc, char const *argv[])
 		// optimize
 		CHECKED_CPX_CALL( CPXmipopt, env, lp );
 
+        t2 = clock();
+        gettimeofday(&tv2, NULL); 
+
 		// print
 		double objval;
 
 		CHECKED_CPX_CALL( CPXgetobjval, env, lp, &objval );
 
-		std::cout << "Objval: " << objval << std::endl;
+        cout << "Source: " << instance->start_idx << endl;
 
-		// int n = CPXgetnumcols(env, lp);
+		cout << "Objval: " << objval << std::endl;
 
-		// cout << "check num var: " << n << " == " << numVars << endl;
+        cout << "in " << (double)(tv2.tv_sec+tv2.tv_usec*1e-6 - (tv1.tv_sec+tv1.tv_usec*1e-6)) << " seconds (user time)\n";
+        cout << "in " << (double)(t2-t1) / CLOCKS_PER_SEC << " seconds (CPU time)\n";
 
-		// if (n != numVars) { throw std::runtime_error(std::string(__FILE__) + ":" + STRINGIZE(__LINE__) + ": " + "different number of variables"); }
+		int n = CPXgetnumcols(env, lp);
 
-	  	// std::vector<double> varVals;
-	  	// varVals.resize(n);
-  		// CHECKED_CPX_CALL( CPXgetx, env, lp, &varVals[0], 0, n - 1 );
-  		// for ( int i = 0 ; i < n ; ++i ) {
-  	 //  		std::cout << "var in position " << i << " : " << varVals[i] << std::endl;
-  		// }
+		cout << "check num var: " << n << " == " << numVars << endl;
+
+		if (n != numVars) { throw std::runtime_error(std::string(__FILE__) + ":" + STRINGIZE(__LINE__) + ": " + "different number of variables"); }
+
+//	  	std::vector<double> varVals;
+//	  	varVals.resize(n);
+//  		CHECKED_CPX_CALL( CPXgetx, env, lp, &varVals[0], 0, n - 1 );
+//  		for ( int i = 0 ; i < n ; ++i ) {
+//  	  		std::cout << "var in position " << i << " : " << varVals[i] << std::endl;
+//  		}
 		
-		CHECKED_CPX_CALL( CPXsolwrite, env, lp, "atsp.sol" );
-		// free
+		CHECKED_CPX_CALL( CPXsolwrite, env, lp, "stsp.sol" );
 
+		// free
 		CPXfreeprob(env, &lp);
 		CPXcloseCPLEX(&env);
 	}
