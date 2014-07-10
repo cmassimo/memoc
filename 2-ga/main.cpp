@@ -8,49 +8,58 @@
 #include <ctime>
 #include <sys/time.h>
 
-#include "TSPSolver.h"
+#include "Solver.h"
+
+using namespace std;
 
 // error status and messagge buffer
 int status;
 char errmsg[255];
 
-
 int main (int argc, char const *argv[])
 {
 	try
 	{
-		if (argc < 2) throw std::runtime_error("usage: ./main filename.dat");
-		TSP tspInstance;
-		tspInstance.read(argv[1]);
-		TSPSolution aSolution(tspInstance);
+		Instance* instance = new Instance(40, 500, 500, 0);
 		
-		clock_t t1,t2;
+		clock_t t1, t2;
 		t1 = clock();
 		struct timeval  tv1, tv2;
-    gettimeofday(&tv1, NULL);
+        gettimeofday(&tv1, NULL);
     
-    TSPSolver tspSolver;
-		tspSolver.initRnd(aSolution);
-		
-		TSPSolution bestSolution(tspInstance);
-		tspSolver.solve(tspInstance,aSolution,bestSolution);
+        Solver solver;
+        vector<Solution> start_sols;
+
+        for (int i = 0; i < 10; i++) {
+            Solution sol(*instance);
+            solver.init_random_solution(sol);
+            start_sols.push_back(sol);
+        }
+
+        Population start_pop(10);
+		solver.init_starting_population(start_pop, start_sols, *instance);
+	
+		Solution best_solution(*instance);
+		solver.solve(*instance, start_pop, best_solution);
 		
 		t2 = clock();
 		gettimeofday(&tv2, NULL);
 		
-		std::cout << "FROM solution: "; 
-		aSolution.print();
-		std::cout << "(value : " << tspSolver.evaluate(aSolution,tspInstance) << ")\n";
-		std::cout << "TO   solution: "; 
-		bestSolution.print();
-		std::cout << "(value : " << tspSolver.evaluate(bestSolution,tspInstance) << ")\n";
-		std::cout << "in " << (double)(tv2.tv_sec+tv2.tv_usec*1e-6 - (tv1.tv_sec+tv1.tv_usec*1e-6)) << " seconds (user time)\n";
-		std::cout << "in " << (double)(t2-t1) / CLOCKS_PER_SEC << " seconds (CPU time)\n";
+        Solution& solution = *start_sols.begin();
+		cout << "FROM solution: "; 
+        solution.print();
+		cout << "(value : " << solver.evaluate(solution, *instance) << ")\n";
+		cout << "TO   solution: "; 
+		best_solution.print();
+		cout << "(value : " << solver.evaluate(best_solution, *instance) << ")\n";
+		cout << "in " << (double)(tv2.tv_sec+tv2.tv_usec*1e-6 - (tv1.tv_sec+tv1.tv_usec*1e-6)) << " seconds (user time)\n";
+		cout << "in " << (double)(t2-t1) / CLOCKS_PER_SEC << " seconds (CPU time)\n";
 		
 	}
-	catch(std::exception& e)
+	catch(exception& e)
 	{
-		std::cout << ">>>EXCEPTION: " << e.what() << std::endl;
+		cout << ">>>EXCEPTION: " << e.what() << endl;
 	}
+
 	return 0;
 }

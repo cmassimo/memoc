@@ -19,10 +19,6 @@ using namespace std;
 class Solution
 {
     public:
-        Instance instance;
-        Solution parent1;
-        Solution parent2;
-
         vector<int> sequence;
 
         /** Constructor 
@@ -31,9 +27,8 @@ class Solution
         * @return ---
         */
         Solution( const Instance& tsp ) {
-            instance = tsp;
-            sequence.reserve(tsp.n + 1);
-            for ( int i = 0; i < tsp.n ; ++i ) {
+            sequence.reserve(tsp.nodes_card + 1);
+            for ( int i = 0; i < tsp.nodes_card ; ++i ) {
                 sequence.push_back(i);
             }
 
@@ -45,7 +40,7 @@ class Solution
         * @param tspSol TSP solution
         * @return ---
         */
-        Solution( const Solution& tspSol ) {
+        Solution(const Solution& tspSol) {
             sequence.reserve(tspSol.sequence.size());
 
             for ( uint i = 0; i < tspSol.sequence.size(); ++i ) {
@@ -58,9 +53,9 @@ class Solution
         * @return ---
         */
         void print ( void ) {
-            int max_print_size = (sequence.size > 20 ? 20 : sequence.size());
+            int max_print_size = (sequence.size() > 20 ? 20 : sequence.size());
 
-            for ( uint i = 0; i < max_print_size; i++ )
+            for ( int i = 0; i < max_print_size; i++ )
               cout << sequence[i] << " ";
 
             if (sequence.size() > 20)
@@ -82,13 +77,14 @@ class Solution
             return *this;
         }
 
-        /** crossover operator
+        /** crossover operator (Ricombinazione)
          * creates a new Solution from two parents
          *
          *
          */
         Solution& operator*(const Solution& other) {
             // TODO
+            return *this;
         }
 };
 

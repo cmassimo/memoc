@@ -13,7 +13,7 @@ using namespace std;
 class Population
 {
     public:
-        const int n = 10;
+        int sol_card;
         vector<Solution> individuals;
 
         /** Constructor 
@@ -21,8 +21,8 @@ class Population
         * @param tsp TSP instance
         * @return ---
         */
-        Population() {
-            individuals.reserve(n);
+        Population(int n) : sol_card(n) {
+            individuals.reserve(sol_card);
         }
 
         /** Copy constructor 
@@ -44,6 +44,7 @@ class Population
             for(vector<Solution>::iterator it = individuals.begin(); it != individuals.end(); ++it)
                 it->print();
         }
+
         /** assignment method 
         * copy a solution into another one
         * @param right TSP solution to get into
@@ -57,6 +58,13 @@ class Population
                 individuals[i] = right.individuals[i];
 
             return *this;
+        }
+
+        // Operatore di selezione dei parent per la ricombinazione
+        vector< pair<Solution, Solution> >& select_parents() {
+            //TODO
+            vector< pair<Solution, Solution> > parents;
+            return parents;
         }
 };
 
