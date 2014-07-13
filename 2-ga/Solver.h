@@ -18,10 +18,46 @@ using namespace std;
  */
 class Solver
 {
-
     public:
+        int phase; // 0 for diversification, 1 for intensification
+        int iterations;
+        int iterations_without_improvement;
+        int max_tot_iterations;
+        int hc_int_iterations;
+        int hc_div_iterations;
+        int hc_iterations;
+        double int_accept_prob;
+        double div_accept_prob;
+        double accept_prob;
+
         /** Constructor */
-        Solver() {}
+        Solver(int max_it): max_tot_iterations(max_it) {
+            phase = 0;
+            iterations = 0;
+            iterations_without_improvement = 0;
+
+            hc_int_iterations = 0;
+            hc_div_iterations = 3;
+            int_accept_prob = 0.99;
+            div_accept_prob = 0.90;
+
+            accept_prob = div_accept_prob;
+            hc_iterations = hc_div_iterations;
+        }
+
+        int set_phase(int ph) {
+            phase = ph;
+            if (phase == 0) {
+                hc_iterations = hc_div_iterations;
+                accept_prob = div_accept_prob;
+            }
+            else {
+                hc_iterations = hc_div_iterations;
+                accept_prob = div_accept_prob;
+            }
+            
+            return phase;
+        }
 
         /**
         * initialize a solution as a random sequence by random swaps
@@ -48,7 +84,7 @@ class Solver
             int i = 0; 
             while((int) start_pop.individuals.size() < start_pop.sol_card/2) {
                 // lancia hill climbing a partire da random solution
-                start_pop.individuals.push_back(start_solutions[i].hill_climbing(0, 0));
+                start_pop.individuals.push_back(start_solutions[i].hill_climbing(0, hc_iterations));
                 i++;
             }
 

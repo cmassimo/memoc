@@ -115,7 +115,7 @@ class Population
 
             for (uint i = 0; i < individuals.size(); i++) {
                 double tmp_objval = individuals[i].evaluate();
-                if (tmp_objval < min) {
+                if (individuals[i].is_ammissible() && tmp_objval < min) {
                     min = tmp_objval;
                     min_index = i;
                 }

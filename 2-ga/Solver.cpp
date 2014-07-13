@@ -12,15 +12,14 @@ using namespace std;
 
 Solution Solver::solve(const Instance& tsp, Population& init_pop)
 {
+//    set_phase(1);
     bool stop = false;
-    int iteration = 0;
-    int no_improvement = 0;
     Population& training_population = init_pop;
     Solution best_sol = init_pop.best_solution();
 
-    while (!stop && iteration < 200) {
+    while (!stop && iterations < max_tot_iterations) {
         Population next_gen = advance_generation(best_sol, training_population, tsp);
-        cout << "### "<< iteration << "-th population ###" << endl;
+        cout << "### "<< iterations << "-th population ###" << endl;
 //        next_gen.print();
         Solution local_best_sol = next_gen.best_solution();
 
@@ -31,17 +30,21 @@ Solution Solver::solve(const Instance& tsp, Population& init_pop)
 
         if (local_best_sol.evaluate() < best_sol.evaluate()) {
             best_sol = local_best_sol;
-            no_improvement = 0;
+            set_phase(1);
+            iterations_without_improvement = 0;
         }
         else {
-            no_improvement++;
+            iterations_without_improvement++;
         }
-        iteration++;
+        iterations++;
 
         training_population = next_gen;
 
-        if (no_improvement > 100)
+        if (iterations_without_improvement > 10000)
             stop = true;
+
+        if (iterations_without_improvement > 9999)
+            set_phase(0);
     }
 
     return best_sol;
@@ -112,7 +115,7 @@ bool Solver::build_new_population(const Solution& current_opt, const Population&
     for (uint i = 0; i < parents.size(); i++) {
         vector<Solution> couple = parents[i];
 
-        vector<Solution> twins = couple[0] * couple[1];
+        vector<Solution> twins = couple[0].crossover(couple[1], this->accept_prob, this->hc_iterations);
         for(uint j = 0; j < twins.size(); j++)
             children.push_back(twins[j]);
     }

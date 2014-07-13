@@ -39,10 +39,6 @@ class Solution
         Solution( const Instance& tsp ) {
             sequence.reserve(tsp.nodes_card);
             instance = &tsp;
-//            for ( int i = 0; i < tsp.nodes_card ; ++i ) {
-//                sequence.push_back(i);
-//            }
-
         }
 
         /** Copy constructor 
@@ -114,41 +110,38 @@ class Solution
         }
 
         /** crossover operator (Ricombinazione)
-         * Creates a new Solution from two parents
+         * Implements order-crossover strategy
          * Genera le due soluzioni figlie con cut-point crossover.
          * accetta soluzioni ammissibili con prob 0.85 e inamissibili
          * con prob complementare.
          */
-        vector<Solution> operator*(const Solution& other) {
+        vector<Solution> crossover(const Solution& other, const double accept_prob, const int hc_iterations) {
             vector<Solution> children;
 
             if (*this == other) {
                 double p = rand() / (double) RAND_MAX;
 
                 if (this->is_ammissible()) {
-                    if (p < 0.85)
+                    if (p < accept_prob)
                         children.push_back(*this);
                 }
                 else {
-                    if (p > 0.85)
+                    if (p > accept_prob)
                         children.push_back(*this);
                 }
             }
             else {
-                uint points_card = (int) ((rand() % 7) + 1);
-                if (points_card < 3)
-                    points_card = 3;
+//                uint points_card = (int) ((rand() % 7) + 1);
+//                if (points_card < 3)
+//                    points_card = 3;
 
-                vector<int> cut_points;
+                vector<int> cut_points(2);
+                int idx = (int) rand() % this->sequence.size();
 
-                cut_points.push_back(0);
-
-                while (cut_points.size() < points_card-1) {
-                    int idx = (int) rand() % this->sequence.size();
-                    if (find(cut_points.begin(), cut_points.end(), idx) == cut_points.end())
-                        cut_points.push_back(idx);
-                }
-                cut_points.push_back(this->sequence.size());
+                cut_points.push_back(idx);
+                while (cut_points[0] == idx)
+                    idx = (int) rand() % this->sequence.size();
+                cut_points.push_back(idx);
 
                 sort(cut_points.begin(), cut_points.end());
 
@@ -157,24 +150,32 @@ class Solution
                     Solution child1 = Solution(*this->instance);
                     Solution child2 = Solution(*this->instance);
 
-                    int turn = 0;
-                    for (uint i = 0; i < cut_points.size()-1; i++) {
+                    for (int i = 0; i < cut_points[0]; i++) {
+                        child1.sequence.push_back(this->sequence[i]);
+                        child2.sequence.push_back(other.sequence[i]);
+                    }
+                    for (int i = cut_points[0]; i < cut_points[1]; i++) {
+                        child1.sequence.push_back(-1);
+                        child2.sequence.push_back(-1);
+                    }
+                    for (uint i = cut_points[1]; i < this->sequence.size(); i++) {
+                        child1.sequence.push_back(this->sequence[i]);
+                        child2.sequence.push_back(other.sequence[i]);
+                    }
 
-                        if (turn == 0) {
-                            for (int j = cut_points[i]; j < cut_points[i+1]; j++) {
-                                child1.sequence.push_back(this->sequence[j]);
-                                child2.sequence.push_back(other.sequence[j]);
+                    for (int i = cut_points[0]; i < cut_points[1]; i++) {
+                        for (uint j = 0; j < this->sequence.size(); j++) {
+                            if (find(child1.sequence.begin(), child1.sequence.end(), other.sequence[j]) == child1.sequence.end()) {
+                                child1.sequence[i] = other.sequence[j];
+                                break;
                             }
-                            turn = 1;
                         }
-                        else {
-                            for (int j = cut_points[i+1]-1; j > cut_points[i]-1; j--) {
-                                child1.sequence.push_back(this->sequence[j]);
-                                child2.sequence.push_back(other.sequence[j]);
+                        for (uint j = 0; j < this->sequence.size(); j++) {
+                            if (find(child2.sequence.begin(), child2.sequence.end(), this->sequence[j]) == child2.sequence.end()) {
+                                child2.sequence[i] = this->sequence[j];
+                                break;
                             }
-                            turn = 0;
                         }
-
                     }
 
 //                    child1.print();
@@ -183,34 +184,34 @@ class Solution
                     double p = rand() / (double) RAND_MAX;
 
                     if (child1.is_ammissible()) {
-                        if (p < 0.99)
+                        if (p < accept_prob)
                             children.push_back(child1);
                     }
                     else {
-                        if (p > 0.99)
+                        if (p > accept_prob)
                             children.push_back(child1);
                     }
 
                     if (child2.is_ammissible()) {
-                        if (p < 0.99)
+                        if (p < accept_prob)
                             children.push_back(child2);
                     }
                     else {
-                        if (p > 0.99)
+                        if (p > accept_prob)
                             children.push_back(child2);
                     }
                 } // children generation
             }
 
-            mutate(children);
-            improve(children);
+            mutate(children, accept_prob);
+            improve(children, accept_prob, hc_iterations);
 
             return children;
         }
 
-        bool mutate(vector<Solution>& children);
+        bool mutate(vector<Solution>& children, const double accept_prob);
 
-        bool improve(vector<Solution>& children);
+        bool improve(vector<Solution>& children, const double accept_prob, const int hc_iterations);
 
         // max_iterations == 0 => go ad libitum
         Solution& hill_climbing(int current_iteration, int max_iterations =0);
@@ -224,10 +225,7 @@ class Solution
 
         bool is_ammissible() const;
 
-        bool repair() {
-            //TODO?
-            return true;
-        }
+        bool repair();
 };
 
 #endif /* SOLUTION_H */

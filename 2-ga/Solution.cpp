@@ -34,7 +34,6 @@ double Solution::fitness(const Solution& best) const {
     total -= repeats() / 100.0;
     
     // penalizza soluzioni troppo simili all'ottimo corrente
-
     int hdist = (best.hamming_distance(*this));
 
     if (hdist > 0)
@@ -45,7 +44,7 @@ double Solution::fitness(const Solution& best) const {
     return total;
 }
 
-bool Solution::mutate(vector<Solution>& children) {
+bool Solution::mutate(vector<Solution>& children, const double accept_prob) {
     //srand(time(NULL));
 
     //26 April, 01:23 (UTC+3)
@@ -54,11 +53,14 @@ bool Solution::mutate(vector<Solution>& children) {
 
         double p = (rand() / (double) RAND_MAX);
 
-        if (p < 0.99) {
-            Move m;
-            m.from = rand() % mut.sequence.size();
-            m.to = rand() % mut.sequence.size();
-            mut = mut.swap(m);
+        if (p < accept_prob) {
+            // mutazione per inversione
+            int from = rand() % mut.sequence.size();
+            int to = rand() % mut.sequence.size();
+            if (from < to)
+                reverse(mut.sequence.begin()+from, mut.sequence.begin()+to);
+            else
+                reverse(mut.sequence.begin()+to, mut.sequence.begin()+from);
         }
         else {
             if (mut.is_ammissible()) {
@@ -75,15 +77,15 @@ bool Solution::mutate(vector<Solution>& children) {
     return true;
 }
 
-bool Solution::improve(vector<Solution>& children) {
+bool Solution::improve(vector<Solution>& children, const double accept_prob, const int hc_iterations) {
     //srand(time(NULL));
 
     //destroy erase improve
     double p = (rand() / (double) RAND_MAX);
 
     for (uint i = 0 ; i < children.size(); ++i) {
-        if (p < 0.66 && children[i].is_ammissible())
-            children[i] = children[i].hill_climbing(0, 0);
+        if (p < accept_prob && children[i].is_ammissible())
+            children[i] = children[i].hill_climbing(0, hc_iterations);
     }
 
     return true;
@@ -112,6 +114,22 @@ Solution& Solution::hill_climbing(int current_iteration, int max_iterations) {
     // generates the neighbourhood
     for(vector<Move>::iterator mv = moves.begin(); mv != moves.end(); ++mv) {
         Solution tmp = local_best.swap(*mv);
+        neighbourhood.push_back(make_pair(tmp.evaluate(), tmp));
+    }
+
+    uint neighbourhood_size = neighbourhood.size();
+    // casual 2-opt
+    for(uint i = 0; i < neighbourhood_size; i++) {
+        int from = rand() % local_best.sequence.size();
+        int to = rand() % local_best.sequence.size();
+
+        Solution tmp = local_best;
+
+        if (from < to)
+            reverse(tmp.sequence.begin()+from, tmp.sequence.begin()+to);
+        else
+            reverse(tmp.sequence.begin()+to, tmp.sequence.begin()+from);
+
         neighbourhood.push_back(make_pair(tmp.evaluate(), tmp));
     }
 
@@ -169,6 +187,51 @@ double Solution::repeats() const {
     }
 
     return reps;
+}
+
+bool Solution::repair() {
+
+//    Solution tpl = Solution(*this);
+//    for (uint i = 0; i < tpl.sequence.size(); i++)
+//        tpl.sequence[i] = i;
+//
+//    vector<int> comp(this->sequence.size());
+//    copy(this->sequence.begin(), this->sequence.end(), comp.begin());
+//    sort(comp.begin(), comp.end());
+//
+//    vector<int> reps;
+//    int current = comp[0];
+//    for (uint i = 1; i < comp.size()-1; i++) {
+//        if (current == comp[i])
+//            reps.push_back(i);
+//        else
+//            current = comp[i];
+//    }
+//
+//    for (uint i = 0; i < reps.size(); i++) {
+//        for (uint j = 0; j < tpl.sequence.size(); j++) {
+//            if (find(comp.begin(), comp.end(), tpl.sequence[j]) == tpl.sequence.end()) {
+//                comp[reps[i]] = tpl.sequence[j];
+//                break;
+//            }
+//        }
+//    }
+//
+//    vector<int> self(this->sequence.size());
+//    copy(this->sequence.begin(), this->sequence.end(), self.begin());
+//
+//    vector<int> res(this->sequence.size());
+//    vector<int>::iterator it;
+//    it = set_union(self.begin(), self.end(), comp.begin(), comp.end(), res.begin());
+////    res.resize(this->sequence.size());
+//    cout << res.size() << endl;
+//
+//    this->print();
+//    for (uint i = 0; i < res.size(); i++)
+//        this->sequence[i] = res[i];
+//    cout << "GENIUS: " << reps.size() << endl;
+
+    return true;
 }
 
 bool Solution::is_ammissible() const {

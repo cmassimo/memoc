@@ -26,7 +26,7 @@ int main (int argc, char const *argv[])
 		struct timeval  tv1, tv2;
         gettimeofday(&tv1, NULL);
     
-        Solver solver;
+        Solver solver(instance->nodes_card*1000);
         vector<Solution> start_sols;
 
         for (int i = 0; i < 10; i++) {
