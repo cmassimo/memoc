@@ -3,7 +3,6 @@
  * @brief 
  */
 
-
 #include <stdexcept>
 #include <ctime>
 #include <sys/time.h>
@@ -39,19 +38,17 @@ int main (int argc, char const *argv[])
         Population start_pop(10);
 		solver.init_starting_population(start_pop, start_sols, *instance);
 	
-		Solution best_solution(*instance);
-		solver.solve(*instance, start_pop, best_solution);
+		Solution best_solution = solver.solve(*instance, start_pop);
 		
 		t2 = clock();
 		gettimeofday(&tv2, NULL);
 		
         Solution& solution = *start_sols.begin();
-		cout << "FROM solution: "; 
+		cout << "FROM solution:\t"; 
         solution.print();
-		cout << "(value : " << solver.evaluate(solution, *instance) << ")\n";
-		cout << "TO   solution: "; 
+		cout << "TO solution:\t"; 
 		best_solution.print();
-		cout << "(value : " << solver.evaluate(best_solution, *instance) << ")\n";
+        cout << endl;
 		cout << "in " << (double)(tv2.tv_sec+tv2.tv_usec*1e-6 - (tv1.tv_sec+tv1.tv_usec*1e-6)) << " seconds (user time)\n";
 		cout << "in " << (double)(t2-t1) / CLOCKS_PER_SEC << " seconds (CPU time)\n";
 		

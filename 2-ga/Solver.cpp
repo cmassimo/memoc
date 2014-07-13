@@ -10,77 +10,113 @@
 
 using namespace std;
 
-bool comp_pair(pair<double, Solution> fst, pair<double, Solution> snd) { return fst.first < snd.first; }
-
-bool Solver::solve(const Instance& tsp, const Population& init_pop, Solution& bestSol)
+Solution Solver::solve(const Instance& tsp, Population& init_pop)
 {
-    // TODO
-    try
-    {
-        bool stop = false;
-        int  iter = 0;
+    bool stop = false;
+    int iteration = 0;
+    int no_improvement = 0;
+    Population& training_population = init_pop;
+    Solution best_sol = init_pop.best_solution();
+
+    while (!stop && iteration < 200) {
+        Population next_gen = advance_generation(best_sol, training_population, tsp);
+        cout << "### "<< iteration << "-th population ###" << endl;
+//        next_gen.print();
+        Solution local_best_sol = next_gen.best_solution();
+
+        cout << "best sol:\t\t";
+        best_sol.print();
+        cout << "current best sol:\t";
+        local_best_sol.print();
+
+        if (local_best_sol.evaluate() < best_sol.evaluate()) {
+            best_sol = local_best_sol;
+            no_improvement = 0;
+        }
+        else {
+            no_improvement++;
+        }
+        iteration++;
+
+        training_population = next_gen;
+
+        if (no_improvement > 100)
+            stop = true;
+    }
+
+    return best_sol;
+}
+
+// Operatore di selezione dei nuovi componenti della popolazione successiva
+Population Solver::advance_generation(const Solution& current_opt, const Population& pop, const Instance& tsp) {
+    srand(time(NULL));
+
+    vector<Solution> next_generation;
+
+    build_new_population(current_opt, pop, next_generation, tsp);
+
+    //pick the next population from next_generation
+    Population new_population(0);
+    
+    double total_fitness = 0.0;
+    for (uint i = 0; i < next_generation.size(); i++) {
+        total_fitness += next_generation[i].fitness(current_opt);
+    }
+
+    vector< pair<int, double> > index_fitness;
+
+    // accumulo della fitness / index
+    for (uint i = 0; i < next_generation.size(); i++) {
+        double ftns = next_generation[i].fitness(current_opt);
+
+        pair<int, double> tmp (i, ftns);
+        index_fitness.push_back(tmp);
+    }
+
+    // selection
+    while(new_population.individuals.size() < pop.individuals.size()) {
+
+        double p = (rand() / (double) RAND_MAX) * total_fitness;
+
+        uint i = 0;
+        while(i < index_fitness.size() && p > 0) {
+            p -= index_fitness[i].second;
+            i++;
+        }
+        
+        int selected_idx = index_fitness[i-1].first;
+        Solution sol = next_generation[selected_idx];
+
+        vector<Solution>::iterator dup = new_population.individuals.begin();
+        while (dup != new_population.individuals.end()) {
+            if (dup->hamming_distance(sol) == 0)
+                break;
+            else
+                dup++;
+        }
+
+        // sol is not already present in the new popultion:
+        if (dup == new_population.individuals.end())
+            new_population.individuals.push_back(sol);
 
     }
-    catch(exception& e)
-    {
-        cout << ">>>EXCEPTION: " << e.what() << endl;
-        return false;
+//    cout << "---------------------- population advanced ----------------------" << endl;
+    
+    return new_population;
+}
+
+bool Solver::build_new_population(const Solution& current_opt, const Population& current, vector<Solution>& children, const Instance& inst) {
+    vector< vector<Solution> > parents = current.select_parents(current_opt, inst);
+//    cout << "---------------------- parents selected ----------------------" << endl;
+
+    for (uint i = 0; i < parents.size(); i++) {
+        vector<Solution> couple = parents[i];
+
+        vector<Solution> twins = couple[0] * couple[1];
+        for(uint j = 0; j < twins.size(); j++)
+            children.push_back(twins[j]);
     }
 
     return true;
 }
 
-//Solution& Solver::swap(Solution& tspSol, const Move& move) 
-//{
-//  Solution tmpSol(tspSol);
-//  for ( int i = move.from ; i <= move.to ; ++i ) {
-//    tspSol.sequence[i] = tmpSol.sequence[move.to-(i-move.from)];
-//  }
-//  return tspSol;
-//}
-
-// Operatore di selezione dei nuovi componenti della popolazione successiva
-bool advance_generation(Population& pop, Instance& inst) {
-    // TODO
-}
-
-Solution& Solver::hill_climbing_tsp(const Instance& inst, Solution& start, double starting_value) {
-    vector<Move> moves;
-
-    // XXX generates moves (neighbour) DRAFT
-    for (uint i = 0; i < start.sequence.size(); ++i) {
-        Move m;
-        if (i < start.sequence.size() - 1) {
-            m.from = i;
-            m.to = i+1;
-            moves.push_back(m);
-        }
-    }
-
-    // Hill climbing
-    Solution& local_best = start;
-    double local_best_value = evaluate(start, inst);
-
-    vector<pair<double, Solution> > neighbourhood;
-
-    // generates the neighbourhood
-    for(vector<Move>::iterator it = moves.begin(); it != moves.end(); ++it) {
-        Solution tmp = swap(start, *it);
-        neighbourhood.push_back(make_pair(evaluate(tmp, inst), tmp));
-    }
-
-    pair<double, Solution> best_pair = *max_element(neighbourhood.begin(), neighbourhood.end(), comp_pair);
-
-    if (best_pair.first > local_best_value) {
-        local_best = best_pair.second;
-        local_best_value = best_pair.first;
-        return hill_climbing_tsp(inst, local_best, local_best_value);
-    }
-    else {
-        return local_best;
-    }
-}
-
-bool Solver::build_new_population(Population& current, vector<Solution>& children, const Instance& inst) {
-    //TODO
-}

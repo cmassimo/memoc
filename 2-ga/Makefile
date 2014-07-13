@@ -2,7 +2,7 @@ CC = g++
 CPPFLAGS = -g -Wall -O2
 LDFLAGS =
 
-OBJ = Solver.o main.o
+OBJ = Solution.o Solver.o main.o
 
 %.o: %.cpp
 		$(CC) $(CPPFLAGS) -c $^ -o $@
