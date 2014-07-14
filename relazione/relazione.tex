@@ -1,0 +1,202 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[italian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+
+\begin{document}
+
+\title{Risoluzione del problema STSP tramite metodo esatto e metaeuristica, comparazione}
+%\subtitle{Relazione Progetto del corso di Metodi e Modelli per lOttimizzazione Combinatoria}
+\author{Carlo Maria Massimo 1058513}
+\date{\today}
+\maketitle
+
+\tableofcontents
+
+    \section{Introduzione}
+        Il lavoro in oggetto si propone lo scopo di valutare attraverso alcune sperimentazioni la bont\`a di metodi
+        di risoluzione del problema STSP tramite metaeuristica rispetto a pi\`u collaudati metodi esatti.
+        I metodi che sfruttano le metaeuristiche e qualche forma di ricerca locale sono spesso utilizzati per le migliori
+        performance in termini di rapidit\`a di calcolo ed uso delle risorse, a fronte di un possibile degrado nella qualit\`a
+        dei risultati forniti in output.
+
+        In questo lavoro \`e stata implementata una ricerca tramite modello MILP e risolutore CPLEX e tramite algoritmo genetico.
+
+    \section{Implementazione}
+        L'implementazione della ricerca tramite metodo esatto \`e stata realizzata prendendo spunto da un'esercitazione di laboratorio
+        relativa ad un problema di ATSP ed implementando in pratica il modello descritto nella consegna dell'esercitazione 1.
+
+        L'implementazione della ricerca tramite algoritmo genetico \`e stata realizzata partendo dalla descrizione dei passi
+        sulle dispense del corso, cercando per quanto possibile di introdurre qualche elemento di originalit\`a e di miglioramento rispetto
+        allo schema standard dell'algoritmo proposto.
+
+        \subsection{Note}
+        Durante gli esperimenti entrambe le ricerche partono da un'istanza del problema comune, modellata nella classe \emph{Instance}.
+        L'istanza rappresenta il grafo dei punti che dovranno essere effettuati sulla piastra.
+        In particolare \`e descritta da:
+
+        \begin{enumerate}
+            \item cardinalit\`a dell'insieme dei nodi del grafo
+            \item dimensioni della piastra (limite alle coordinate dei punti)
+            \item il nodo di partenza
+            \item la matrice delle distanze tra i nodi
+            \item la lista dei nodi (identificati dalle proprie coordinate nello spazio 2D)
+        \end{enumerate}
+
+        La classe \emph{Model} racchiude il modello e la ricerca tramite MILP mentre le classi \emph{Solution}, \emph{Population} e \emph{Solver}
+        implementano l'algoritmo genetico.
+        
+    \section{Risoluzione tramite modello MILP}
+
+    \section{Risoluzione tramite algoritmo genetico}
+        L'algoritmo implementato segue il seguente schema:
+        \begin{enumerate}
+            \item codifica delle soluzioni del problema;
+            \item inizializzazione di una popolazione iniziale;
+            \item ripetizione fino al soddisfacimento di condizioni di arresto:
+                \begin{enumerate}
+                    \item seleziona coppie di parent dalla popolazione corrente;
+                    \item ricombina i parent generando due figli per ogni coppia;
+                    \item rinnova la popolazione corrente selezionado nuovi individui
+                        tra i figli appena generati, sulla base della misura di fitness;
+                \end{enumerate}
+            \item restituisci la soluzione migliore generata.
+        \end{enumerate}
+
+        \subsection{Parametri e calibrazione}
+
+        \subsection{Codifica delle soluzioni}
+            La codifica delle soluzioni adottata \`e quella detta ``path representation'', ovvero
+            ogni soluzione \`e rappresentata da un vettore di interi (\emph{sequence}) che contiene
+            gli indici del vettore dei nodi del grafo. L'ordine rappresentato nel vettore determina il cammino.
+            Ogni indice appare solo una volta nel vettore \emph{sequence} e questo fa si che si riesca a modellare
+            un ciclo Hamiltoniano.
+
+        \subsection{Inizializzazione della popolazione iniziale}
+            La popolazione di partenza viene inizialmente generata in maniera casuale. La met\`a di questa popolazione
+            viene migliorata tramite una ricerca locale tramite \emph{Hill Climbing} che pu\`o essere o meno limitata
+            nel numero di iterazioni dal fatto che si sia scelto di iniziare diversificando o intensificando la ricerca.
+            La ricerca locale si basa su un vicinato 2-opt.
+
+        \subsection{Selezione genitori}
+            La fase di selezione degli individui per la ricombinazione procede selezionando dalla popolazione un certo numero
+            (fissato) di coppie di individui distinti.
+            La selezione avviene tramite la tecnica detta ``Fitness proportionate selection'', basandosi su una misura di \emph{fitness}
+            definita come segue:
+
+            $$f_i = (1 / e_i) - ic_i - hc_i$$
+
+            dove:
+            \begin{itemize}
+                \item $e_i$ \`e il valore della funzione obiettivo sulla soluzione i-esima;
+                \item $ic_i$ \`e il coefficiente di inammissibilit\`a definito proporzionalmente
+                    al numero di ripetizioni nel vettore degli indici;
+                \item $hc_i$ \`e il coefficiente di somiglianza con l'ottimo corrente definito proporzionalmente
+                    all'inverso della distanza di Hamming con l'ottimo corrente se questa \`e maggiore di 0, un valore
+                    fissato altrimenti.
+            \end{itemize}
+
+            Vengono create tante coppie quante sono gli individui di una popolazione.
+        
+        \subsection{Ricombinazione degli individui selezionati}
+            Le coppie di individui parent cos\`i individuati vengono ricombinati tra di loro utilizzando l'operatore detto
+            ``order-crossover''.
+
+            Inizialmente si era optato per un operatore ``cut-point'' con $k$ punti di taglio definiti casualmente e variabili
+            in numero tra una coppia e l'altra.
+            Questo operatore \`e stato presto abbandonato in favore dell'``order-crossover'' in quanto causava un netto e veloce
+            peggioramento delle soluzioni generate principalmente perch\'e estremamente inammissibili.
+
+            Data l'inerente fragilit\`a di una soluzione nei confronti di operatori di ricombinazione insensibili rispetto ai nodi
+            risultanti dalla ricombinazione si \`e preferito utilizzare l'operatore ``order-crossover'' che preserva l'ammissibilit\`a
+            della soluzione generata rispetto ai genitori.
+
+            Ogni nuova soluzione generata tramite ricombinazione, se ammissibile viene accettata con probabilit\`a $accept\_prob$,
+            se inammissibile viene scartata con uguale probabilit\`a.
+            Da questa procedura risulta una progenie di cardinalit\`a doppia rispetto a quella di una popolazione regolare.
+
+            Gli individui di questo insieme vengono quindi sottoposti a mutazione ed in seguito a training.
+
+            \subsubsection{Mutazione}
+                Ogni individuo della progenie viene sottoposto, con probabilit\`a $accept\_prob$ ad un operatore di ``mutazione per inversione''.
+                Nel caso in cui non gli venga applicato tale operatore l'individuo viene mutato comunque ma secondo il seguente schema:
+                \begin{itemize}
+                    \item se ammissibile: un gene selezionato casualmente viene impostato ad un valore casuale tra i possibili valori degli indici,
+                        risultando quindi potenzialmente nella perdit\`a di ammissibilit\`a;
+                    \item se inammissibile: viene ``riparato'', ovvero ogni ripetizione di indice viene sostituita con uno degli indici mancanti in maniera ordinata,
+                        ripristinando l'ammissibilit\`a.
+                \end{itemize}
+
+                Si noti come questa secondo tipo di mutazione incida decisamente di pi\`u in fase di diversificazione in quanto $accep\_prob$ diminuisce.
+
+            \subsubsection{Training}
+                Conseguentemente alla fase di mutazione gli individui vengono migliorati tramite la stessa ricerca locale utilizzata per inizializzare
+                la popolazione iniziale (\emph{Hill Climbing}).
+                Anche in questo caso le iterazioni che l'algoritmo esegue sono limitate o meno a seconda che ci si trovi in fase di diversificazione o di intesificazione.
+
+        \subsection{Rinnovamento della popolazione}
+            Gli individui cos\`i manipolati vengono sottoposti quindi a selezione tramite ``Fitness proportionate selection'' fino a coprire la
+            cardinalit\`a degli individui di una popolazione.
+            La popolazione cos\`i ottenuta diviene la nuova generazione.
+            Viene quindi confrontata la miglior soluzione della nuova generazione con l'ottimo corrente e se i criteri di arresto sono soddisfatti viene ritornata la migliore delle due soluzioni,
+            altrimenti si procede con un'altra iterazione.
+
+    \section{Risultati delle simulazioni}
+        
+        \subsection{Esperimenti}
+        I parametri degli esperimenti (indicati con \textbf{Ei}) effettuati sono stati i seguenti:
+        \begin{description}
+            \item[E1] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra fissate (500x500);
+            \item[E2] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra crescenti: 100x100--700x700;
+            \item[E3] come \textbf{E1} ma partendo con una fase di intensificazione invece che diversificazione;
+            \item[E4] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione dei punti su una circonferenza e dimensioni di piastra fissate (500x500).
+            \item[E5] insieme dei nodi di cardinalit\`a 100 inizializzazione casuale dei punti e dimensioni di piastra fissate (500x500).
+        \end{description}
+
+        \subsection{Risultati}
+            Seguono i risultati ottenuti dalle simulazioni effettuate.
+            \subsubsection{Ricerca con metodo esatto}
+
+                \begin{figure}
+                    \centering
+                    \fbox{\includegraphics[scale=0.8]{img/exavgtime}}
+                    \caption{Media dei tempi di ricerca della soluzione esatta}
+                \end{figure}
+
+                Il valore molto elevato che si riscontra in \textbf{E4} \`e probabilmente dovuto all'assenza di un controllo di collisione
+                nella generazione dei punti sulla circonferenza, complicando di molto il lavoro della fase di Branch and Bound.
+
+                \begin{figure}
+                    \centering
+                    \includegraphics[scale=0.8]{img/exavgobj}
+                    \caption{Media della funzione obiettivo per la ricerca della soluzione esatta}
+                \end{figure}
+
+                I valori alti in \textbf{E2} sono dovuti all'espansione dell'area della piastra mentre quelli molto bassi in \textbf{E4} alla
+                conformazione del grafo (circonferenza).
+
+            \subsubsection{Ricerca con metaeuristica}
+
+                    \begin{figure}[htb]
+                        \centering
+                        \fbox{\includegraphics[scale=0.8]{img/gavgtime}}
+                        \caption{Media dei tempi di ricerca con metaeuristica}
+                    \end{figure}
+
+                    Il valore molto elevato che si riscontra in \textbf{E4} \`e probabilmente dovuto all'assenza di un controllo di collisione
+                    nella generazione dei punti sulla circonferenza, complicando di molto il lavoro della fase di Branch and Bound.
+
+                    \begin{figure}[htb]
+                        \centering
+                        \includegraphics[scale=0.8]{img/gavgobj}
+                        \caption{Media della funzione obiettivo per la ricerca con metaeuristica}
+                    \end{figure}
+
+                    I valori alti in \textbf{E2} sono dovuti all'espansione dell'area della piastra mentre quelli molto bassi in \textbf{E4} alla
+                    conformazione del grafo (circonferenza).
+
+
+    \section{Conclusioni}
+
+\end{document}
