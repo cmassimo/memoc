@@ -21,7 +21,7 @@ double Solution::evaluate() const {
         total += this->instance->costs[from][to];
     }
 
-    total += this->instance->costs[this->sequence.size()-1][0];
+    total += this->instance->costs[this->sequence[this->sequence.size()-1]][this->sequence[0]];
 
     return total;
 }
@@ -179,7 +179,7 @@ double Solution::repeats() const {
 
     int reps = 0;
     int current = comp[0];
-    for (uint i = 1; i < comp.size()-1; i++) {
+    for (uint i = 1; i < comp.size(); i++) {
         if (current == comp[i])
             reps++;
         else
@@ -190,46 +190,27 @@ double Solution::repeats() const {
 }
 
 bool Solution::repair() {
+    vector<int> reps;
+    vector<int> tpl;
+    for (uint i = 0; i < this->sequence.size(); i++)
+        tpl.push_back(i);
 
-//    Solution tpl = Solution(*this);
-//    for (uint i = 0; i < tpl.sequence.size(); i++)
-//        tpl.sequence[i] = i;
-//
-//    vector<int> comp(this->sequence.size());
-//    copy(this->sequence.begin(), this->sequence.end(), comp.begin());
-//    sort(comp.begin(), comp.end());
-//
-//    vector<int> reps;
-//    int current = comp[0];
-//    for (uint i = 1; i < comp.size()-1; i++) {
-//        if (current == comp[i])
-//            reps.push_back(i);
-//        else
-//            current = comp[i];
-//    }
-//
-//    for (uint i = 0; i < reps.size(); i++) {
-//        for (uint j = 0; j < tpl.sequence.size(); j++) {
-//            if (find(comp.begin(), comp.end(), tpl.sequence[j]) == tpl.sequence.end()) {
-//                comp[reps[i]] = tpl.sequence[j];
-//                break;
-//            }
-//        }
-//    }
-//
-//    vector<int> self(this->sequence.size());
-//    copy(this->sequence.begin(), this->sequence.end(), self.begin());
-//
-//    vector<int> res(this->sequence.size());
-//    vector<int>::iterator it;
-//    it = set_union(self.begin(), self.end(), comp.begin(), comp.end(), res.begin());
-////    res.resize(this->sequence.size());
-//    cout << res.size() << endl;
-//
-//    this->print();
-//    for (uint i = 0; i < res.size(); i++)
-//        this->sequence[i] = res[i];
-//    cout << "GENIUS: " << reps.size() << endl;
+    for(uint i = 0; i < this->sequence.size()-1; i++) {
+        int current = this->sequence[i];
+        for(uint j = i+1; j < this->sequence.size(); j++) {
+            if (current == this->sequence[j])
+                reps.push_back(j);
+        }
+    }
+
+    for (uint i = 0; i < reps.size(); i++) {
+        for (uint j = 0; j < tpl.size(); j++) {
+            if (find(this->sequence.begin(), this->sequence.end(), tpl[j]) == this->sequence.end()) {
+                this->sequence[reps[i]] = tpl[j];
+                break;
+            }
+        }
+    }
 
     return true;
 }

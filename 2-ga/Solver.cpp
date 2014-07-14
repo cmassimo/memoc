@@ -19,14 +19,14 @@ Solution Solver::solve(const Instance& tsp, Population& init_pop)
 
     while (!stop && iterations < max_tot_iterations) {
         Population next_gen = advance_generation(best_sol, training_population, tsp);
-        cout << "### "<< iterations << "-th population ###" << endl;
+ //       cout << "### "<< iterations << "-th population ###" << endl;
 //        next_gen.print();
         Solution local_best_sol = next_gen.best_solution();
 
-        cout << "best sol:\t\t";
-        best_sol.print();
-        cout << "current best sol:\t";
-        local_best_sol.print();
+//        cout << "best sol:\t\t";
+//        best_sol.print();
+//        cout << "current best sol:\t";
+//        local_best_sol.print();
 
         if (local_best_sol.evaluate() < best_sol.evaluate()) {
             best_sol = local_best_sol;
@@ -47,6 +47,7 @@ Solution Solver::solve(const Instance& tsp, Population& init_pop)
             set_phase(0);
     }
 
+    cout << "### "<< iterations << "-th population ###" << endl;
     return best_sol;
 }
 
