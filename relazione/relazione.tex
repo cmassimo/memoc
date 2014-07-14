@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass[a4paper]{article}
 
 \usepackage[italian]{babel}
 \usepackage[utf8]{inputenc}
@@ -15,7 +15,7 @@
 \tableofcontents
 
     \section{Introduzione}
-        Il lavoro in oggetto si propone lo scopo di valutare attraverso alcune sperimentazioni la bont\`a di metodi
+    Il lavoro in oggetto si propone lo scopo di valutare attraverso alcune sperimentazioni la bont\`a di metodi
         di risoluzione del problema STSP tramite metaeuristica rispetto a pi\`u collaudati metodi esatti.
         I metodi che sfruttano le metaeuristiche e qualche forma di ricerca locale sono spesso utilizzati per le migliori
         performance in termini di rapidit\`a di calcolo ed uso delle risorse, a fronte di un possibile degrado nella qualit\`a
@@ -65,6 +65,10 @@
         \end{enumerate}
 
         \subsection{Parametri e calibrazione}
+            I parametri che determinano una variazione nella condotta della ricerca con metaeuristica sono essenzialmente due:
+            \begin{itemize}
+                \item $accept\_prob$
+            \end{itemize}
 
         \subsection{Codifica delle soluzioni}
             La codifica delle soluzioni adottata \`e quella detta ``path representation'', ovvero
@@ -151,50 +155,47 @@
             \item[E2] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra crescenti: 100x100--700x700;
             \item[E3] come \textbf{E1} ma partendo con una fase di intensificazione invece che diversificazione;
             \item[E4] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione dei punti su una circonferenza e dimensioni di piastra fissate (500x500).
-            \item[E5] insieme dei nodi di cardinalit\`a 100 inizializzazione casuale dei punti e dimensioni di piastra fissate (500x500).
+            \item[E5] insieme dei nodi di cardinalit\`a 100, inizializzazione casuale dei punti e dimensioni di piastra fissate (500x500).
         \end{description}
 
         \subsection{Risultati}
             Seguono i risultati ottenuti dalle simulazioni effettuate.
             \subsubsection{Ricerca con metodo esatto}
 
-                \begin{figure}
-                    \centering
-                    \fbox{\includegraphics[scale=0.8]{img/exavgtime}}
-                    \caption{Media dei tempi di ricerca della soluzione esatta}
-                \end{figure}
+                \includegraphics[scale=0.7]{img/exavgtime}
 
-                Il valore molto elevato che si riscontra in \textbf{E4} \`e probabilmente dovuto all'assenza di un controllo di collisione
+                Si nota una crescita esponenziale all'aumentare della dimensione del problema.
+
+                Il valore molto elevato che si riscontra in \textbf{E4} rispetto agli altri esperimenti \`e probabilmente dovuto all'assenza di un controllo di collisione
                 nella generazione dei punti sulla circonferenza, complicando di molto il lavoro della fase di Branch and Bound.
 
-                \begin{figure}
-                    \centering
-                    \includegraphics[scale=0.8]{img/exavgobj}
-                    \caption{Media della funzione obiettivo per la ricerca della soluzione esatta}
-                \end{figure}
+                \textbf{E5} si attesta su $1454.63$ secondi.
+
+                \includegraphics[scale=0.7]{img/exavgobj}
 
                 I valori alti in \textbf{E2} sono dovuti all'espansione dell'area della piastra mentre quelli molto bassi in \textbf{E4} alla
                 conformazione del grafo (circonferenza).
 
+                Valore in \textbf{E5}: $4001.42$.
+
             \subsubsection{Ricerca con metaeuristica}
 
-                    \begin{figure}[htb]
-                        \centering
-                        \fbox{\includegraphics[scale=0.8]{img/gavgtime}}
-                        \caption{Media dei tempi di ricerca con metaeuristica}
-                    \end{figure}
+                    \includegraphics[scale=0.7]{img/gavgtime}
 
-                    Il valore molto elevato che si riscontra in \textbf{E4} \`e probabilmente dovuto all'assenza di un controllo di collisione
-                    nella generazione dei punti sulla circonferenza, complicando di molto il lavoro della fase di Branch and Bound.
+                    Come si pu\`o notare i valori sono estremamente pi\`u contenuti rispetto alla ricerca esatta, anche per problemi di dimensioni
+                    considerevoli.
 
-                    \begin{figure}[htb]
-                        \centering
-                        \includegraphics[scale=0.8]{img/gavgobj}
-                        \caption{Media della funzione obiettivo per la ricerca con metaeuristica}
-                    \end{figure}
+                    Tempo impiegato in \textbf{E5}: $12.3757$ secondi.
 
-                    I valori alti in \textbf{E2} sono dovuti all'espansione dell'area della piastra mentre quelli molto bassi in \textbf{E4} alla
-                    conformazione del grafo (circonferenza).
+                    \includegraphics[scale=0.7]{img/gavgobj}
+
+                    La perdita di performance rispetto all'ottimalit\`a rimane perlopi\`u contenuta.
+
+                    Aumentando anche di un solo ordine di grandezza il numero di iterazioni massime permesse all'algoritmo si otteneva un discreto
+                    avvicinamento ai valori della soluzione ottima, andando per\`o ad incidere considerevolmente sui tempi di esecuzione per i problemi
+                    di dimensione pi\`u modesta.
+
+                    Valore in \textbf{E5}: $5683.34$ a partire da un valore nella popolazione iniziale di $23367.6$.
 
 
     \section{Conclusioni}

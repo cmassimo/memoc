@@ -39,35 +39,35 @@ class Instance
 
             // build nodes and costs matrix
             
-//            for (int i = 0; i < nodes_card; i++) {
-//                Node node;
-//                node.x = fRand(0.0, x_bound);
-//                node.y = fRand(0.0, y_bound);
-//
-//                this->nodes.push_back(node);
-//            }
-
-            int radius = 400;
-            Node center;
-            center.x = 400;
-            center.y = 400;
             for (int i = 0; i < nodes_card; i++) {
                 Node node;
-                node.y = -1;
-                while (node.y < 0) {
-                    node.x = fRand(0.0, 800);
-                    double d = pow(radius, 2) - pow((node.x - center.x), 2);
+                node.x = fRand(0.0, x_bound);
+                node.y = fRand(0.0, y_bound);
 
-                    if (d > 0) {
-                        node.y = sqrt(d) + center.y;
-                    }
-                    else if (d == 0)
-                        node.y = center.y;
-                    else
-                        continue;
-                }
                 this->nodes.push_back(node);
             }
+
+//            int radius = 400;
+//            Node center;
+//            center.x = 400;
+//            center.y = 400;
+//            for (int i = 0; i < nodes_card; i++) {
+//                Node node;
+//                node.y = -1;
+//                while (node.y < 0) {
+//                    node.x = fRand(0.0, 800);
+//                    double d = pow(radius, 2) - pow((node.x - center.x), 2);
+//
+//                    if (d > 0) {
+//                        node.y = sqrt(d) + center.y;
+//                    }
+//                    else if (d == 0)
+//                        node.y = center.y;
+//                    else
+//                        continue;
+//                }
+//                this->nodes.push_back(node);
+//            }
 
             costs.reserve(nodes_card);
 
