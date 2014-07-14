@@ -48,6 +48,10 @@
         implementano l'algoritmo genetico.
         
     \section{Risoluzione tramite modello MILP}
+        Per risolvere il problema tramite modello di programmazione lineare intera mista si \`e ricorsi alla modellazione dello stesso come problema di
+        rete di flusso e si \`e utilizzato il risolutore CPLEX per la ricerca di una soluzione ottima.
+        Il modello implementato \`e quello fornito nell'esercitazione 1, la verifica della correttezza \`e stata fatta mediante ispezione del file
+        \emph{stsp.lp} generato dal risolutore.
 
     \section{Risoluzione tramite algoritmo genetico}
         L'algoritmo implementato segue il seguente schema:
@@ -65,10 +69,25 @@
         \end{enumerate}
 
         \subsection{Parametri e calibrazione}
+            Tutti i paramtri sono stati calibrati a mano per mancanza di tempo anche se sarebbe stato preferibile un approccio di tipo
+            \emph{grid search}.
             I parametri che determinano una variazione nella condotta della ricerca con metaeuristica sono essenzialmente due:
             \begin{itemize}
-                \item $accept\_prob$
+                \item $accept\_prob$ ovvero un valore di probabilit\`a che determina:
+                    \begin{itemize}
+                        \item l'accettazione di nuove soluzioni generate per ricombinazione;
+                        \item l'applicazione della mutazione per inversione invece della rottura / riparazione della soluzione
+                    \end{itemize}
+                    Questo parametro varia tra i valori $0.99$ in fase di intensificazione e $0.90$ in fase di diversificazione.
+                \item $hc\_iterations$ che determina il numero di iterazioni massime nella ricerca locale; durante le fasi di
+                    intensificazione assume il valore $0$ (iterazioni illimitate), mentre in fase di diversificazione assume il valore 3.
             \end{itemize}
+
+            Vi \`e poi il parametro $max\_tot\_iterations$ che gestisce il massimo numero di popolazioni generabili dall'algoritmo ed \`e fissato
+            ad $N*5$ dove $N$ \`e la cardinalit\`a dell'insieme dei nodi del grafo.
+
+            Infine il parametro $iterations\_without\_improvement$ che decide il limite di iterazioni improduttive oltre il quale passare dalla
+            fase di intensificazione alla fase di diversificazione ed \`e fissato ad $N*2$.
 
         \subsection{Codifica delle soluzioni}
             La codifica delle soluzioni adottata \`e quella detta ``path representation'', ovvero
@@ -132,20 +151,23 @@
                         ripristinando l'ammissibilit\`a.
                 \end{itemize}
 
-                Si noti come questa secondo tipo di mutazione incida decisamente di pi\`u in fase di diversificazione in quanto $accep\_prob$ diminuisce.
+                Si noti come questa secondo tipo di mutazione incida decisamente di pi\`u in fase di diversificazione in quanto $accept\_prob$ diminuisce.
 
             \subsubsection{Training}
                 Conseguentemente alla fase di mutazione gli individui vengono migliorati tramite la stessa ricerca locale utilizzata per inizializzare
                 la popolazione iniziale (\emph{Hill Climbing}).
+
                 Anche in questo caso le iterazioni che l'algoritmo esegue sono limitate o meno a seconda che ci si trovi in fase di diversificazione o di intesificazione.
 
         \subsection{Rinnovamento della popolazione}
             Gli individui cos\`i manipolati vengono sottoposti quindi a selezione tramite ``Fitness proportionate selection'' fino a coprire la
             cardinalit\`a degli individui di una popolazione.
+
             La popolazione cos\`i ottenuta diviene la nuova generazione.
+            
             Viene quindi confrontata la miglior soluzione della nuova generazione con l'ottimo corrente e se i criteri di arresto sono soddisfatti viene ritornata la migliore delle due soluzioni,
             altrimenti si procede con un'altra iterazione.
-
+\newpage
     \section{Risultati delle simulazioni}
         
         \subsection{Esperimenti}
@@ -197,7 +219,24 @@
 
                     Valore in \textbf{E5}: $5683.34$ a partire da un valore nella popolazione iniziale di $23367.6$.
 
+                    \includegraphics[scale=0.7]{img/popavg}
+
+                    Si noti come la scarsa complessit\`a del problema in \textbf{E4} influisca drasticamente sul numero di iterazioni necessarie per raggiungere
+                    una soluzione stabile.
+
+                    In \textbf{E5}: 428 popolazioni in media.
+
 
     \section{Conclusioni}
+        STSP \`e un problema inerentemente molto complesso, che nel caso esatto richiede moltissimo sforzo.
+        La ricerca nel caso esatto \`e inoltre piuttosto sensibile alla conformazione del problema, come involontariamente dimostrato
+        dall'esperimento \textbf{E4}, mentre per contro la ricerca tramite metaeuristica sembra essere meno influenzata dalla struttura del grafo,
+        a meno di casi estremamente particolari (ad esempio la circonferenza di \textbf{E3}).
+
+        Con questo lavoro si \`e visto, non senza sorpresa, che \`e possibile raggiungere un buon grado di approssimazione rispetto ad una
+        soluzione ottima, con tempi di esecuzione estremamente ridotti.
+
+        \`E opinione dell'autore che un fine-tuning dei parametri di ricerca con adeguata strategia \emph{grid search} possa dare risultati
+        ancora migliori rispetto a quelli forniti in questo documento.
 
 \end{document}
