@@ -12,7 +12,7 @@ using namespace std;
 
 Solution Solver::solve(const Instance& tsp, Population& init_pop)
 {
-    set_phase(1);
+    //set_phase(1);
     bool stop = false;
     Population& training_population = init_pop;
     Solution best_sol = init_pop.best_solution();

@@ -1,5 +1,5 @@
 CC = g++
-CPPFLAGS = -g -Wall -O2
+CPPFLAGS = -g -Wall -O2 -std=c++0x -U__STRICT_ANSI__
 LDFLAGS =
 
 MEMOC_PATH = /home/cmass/universita/laurea_magistrale/memoc

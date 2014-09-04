@@ -31,15 +31,15 @@ class Solver
         double accept_prob;
 
         /** Constructor */
-        Solver(int max_it): max_tot_iterations(max_it) {
+        Solver(int max_it, int wimp, double hii, double hdi, double iap, double dap): max_tot_iterations(max_it) {
             phase = 0;
             iterations = 0;
             iterations_without_improvement = 0;
 
-            hc_int_iterations = 0;
-            hc_div_iterations = 3;
-            int_accept_prob = 0.99;
-            div_accept_prob = 0.90;
+            hc_int_iterations = hii;
+            hc_div_iterations = hdi;
+            int_accept_prob = iap;
+            div_accept_prob = dap;
 
             accept_prob = div_accept_prob;
             hc_iterations = hc_div_iterations;
@@ -62,13 +62,18 @@ class Solver
         /**
         * initialize a solution as a random sequence by random swaps
         * @param sol solution to be initialized
-        * @return true if everything OK, false otherwise
         */
-        bool init_random_solution(Solution& sol) {
-            for ( int i = 0; i < sol.instance->nodes_card ; ++i ) {
-                sol.sequence.push_back(i);
+        bool init_random_solution(Solution& sol, bool random_val =true) {
+            if (random_val)
+                for ( int i = 0; i < sol.instance->nodes_card; ++i ) {
+                    int it = rand() % sol.instance->nodes_card;
+                    sol.sequence.push_back(it);
+                }
+            else {
+                for ( int i = 0; i < sol.instance->nodes_card; ++i )
+                    sol.sequence.push_back(i);
+                random_shuffle(sol.sequence.begin(), sol.sequence.end());
             }
-            random_shuffle(sol.sequence.begin(), sol.sequence.end());
 
 //            sol.print();
             return true;

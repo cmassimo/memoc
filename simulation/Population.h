@@ -68,12 +68,8 @@ class Population
         vector< vector<Solution> > select_parents(const Solution& best_sol, const Instance& inst) const {
             vector< vector<Solution> > parents;
 
-            double total_fitness = 0.0;
-            for (uint i = 0; i < individuals.size(); i++) {
-                total_fitness += individuals[i].fitness(best_sol);
-            }
-
             vector< pair<int, double> > index_fitness;
+            double total_fitness = 0.0;
 
             // accumulo della fitness / index
             for (uint i = 0; i < individuals.size(); i++) {
@@ -81,10 +77,11 @@ class Population
 
                 pair<int, double> tmp (i, ftns);
                 index_fitness.push_back(tmp);
+                total_fitness += ftns;
             }
 
             // selection
-            while((int) parents.size() < sol_card) {
+            while((int) parents.size() < sol_card*2) {
                 vector<Solution> couple;
 
                 while (couple.size() < 2) {

@@ -27,7 +27,7 @@ double Solution::evaluate() const {
 }
 
 double Solution::fitness(const Solution& best) const {
-    // the 10000.0 param is for scale pourpose
+    // the 1/10000.0 is here for scale pourpose
     double total = 1.0 / (evaluate()/10000.0);
 
     // penalizza sol inammissibile (cicli / cappi)
@@ -91,44 +91,29 @@ bool Solution::improve(vector<Solution>& children, const double accept_prob, con
 
 // max_iterations == 0 => go ad libitum
 Solution& Solution::hill_climbing(int current_iteration, int max_iterations) {
-    vector<Move> moves;
-
-    // XXX generates moves (neighbour) DRAFT
-    for (uint i = 0; i < this->sequence.size(); ++i) {
-        Move m;
-        if (i < this->sequence.size() - 1) {
-            m.from = i;
-            m.to = i+1;
-            moves.push_back(m);
-        }
-    }
-
     // Hill climbing
     Solution& local_best = *this;
     double local_best_value = evaluate();
 
     vector<pair<double, Solution> > neighbourhood;
+    uint max_neighbourhood_size = (this->sequence.size()*3);
 
-    // generates the neighbourhood
-    for(vector<Move>::iterator mv = moves.begin(); mv != moves.end(); ++mv) {
-        Solution tmp = local_best.swap(*mv);
-        neighbourhood.push_back(make_pair(tmp.evaluate(), tmp));
-    }
-
-    uint neighbourhood_size = neighbourhood.size();
     // again casual 2-opt
-    for(uint i = 0; i < neighbourhood_size; i++) {
+    while(neighbourhood.size() < max_neighbourhood_size) {
         int from = rand() % local_best.sequence.size();
         int to = rand() % local_best.sequence.size();
 
         Solution tmp = local_best;
 
-        if (from < to)
-            reverse(tmp.sequence.begin()+from, tmp.sequence.begin()+to);
-        else
-            reverse(tmp.sequence.begin()+to, tmp.sequence.begin()+from);
+        if (!(abs(from-to) <= 1 || abs(from-to) == 49)) {
+            if (from < to)
+                reverse(tmp.sequence.begin()+from, tmp.sequence.begin()+to);
+            else
+                reverse(tmp.sequence.begin()+to, tmp.sequence.begin()+from);
 
-        neighbourhood.push_back(make_pair(tmp.evaluate(), tmp));
+            neighbourhood.push_back(make_pair(tmp.evaluate(), tmp));
+        }
+
     }
 
     pair<double, Solution> best_pair = *min_element(neighbourhood.begin(), neighbourhood.end(), comp_pair);
