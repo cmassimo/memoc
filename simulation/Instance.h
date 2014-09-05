@@ -35,7 +35,7 @@ class Instance
         vector< vector<double> > costs;
         vector<Node> nodes;
 
-        Instance(int n, int a, int b, int si) : nodes_card(n), x_bound(a), y_bound(b), start_index(si) {
+        Instance(int n, int a, int b, int si, int e) : nodes_card(n), x_bound(a), y_bound(b), start_index(si) {
             srand(time(NULL));
 
             // build nodes and costs matrix
@@ -67,36 +67,96 @@ class Instance
 //
 //                tokens.erase(0, tpos + 1);
 //            }
-
-            for (int i = 0; i < nodes_card; i++) {
-                Node node;
-                node.x = fRand(0.0, x_bound);
-                node.y = fRand(0.0, y_bound);
-
-                this->nodes.push_back(node);
-            }
-
-//            int radius = 400;
-//            Node center;
-//            center.x = 400;
-//            center.y = 400;
-//            for (int i = 0; i < nodes_card; i++) {
-//                Node node;
-//                node.y = -1;
-//                while (node.y < 0) {
-//                    node.x = fRand(0.0, 800);
-//                    double d = pow(radius, 2) - pow((node.x - center.x), 2);
 //
-//                    if (d > 0) {
-//                        node.y = sqrt(d) + center.y;
-//                    }
-//                    else if (d == 0)
-//                        node.y = center.y;
-//                    else
-//                        continue;
-//                }
-//                this->nodes.push_back(node);
-//            }
+
+            if (e == 0) {
+
+                for (int i = 0; i < nodes_card; i++) {
+                    Node node;
+                    node.x = fRand(0.0, x_bound);
+                    node.y = fRand(0.0, y_bound);
+
+                    this->nodes.push_back(node);
+                }
+
+            }
+            else if (e == 1) {
+
+                for (int i = 0; i < nodes_card; i++) {
+                    Node node;
+                    node.x = fRand(0.0, x_bound/50);
+                    node.y = fRand(0.0, y_bound/2);
+
+                    this->nodes.push_back(node);
+                }
+            }
+            else if (e == 2) {
+
+                int xedge = x_bound/4;
+                int yedge = x_bound/4;
+                uint nc = nodes_card;
+
+                while (nodes.size() <= nc / 4) {
+                    Node node;
+                    node.x = fRand(xedge/2, xedge+xedge/2);
+                    node.y = fRand(y_bound/2+yedge/2, y_bound - yedge/2);
+                    this->nodes.push_back(node);
+                }
+
+                while (nodes.size() <= nc / 2) {
+                    Node node;
+                    node.x = fRand(x_bound/2+xedge/2, x_bound-xedge/2);
+                    node.y = fRand(y_bound/2+yedge/2, y_bound - yedge/2);
+                    this->nodes.push_back(node);
+                }
+
+                while (nodes.size() <= (nc / 4 * 3)) {
+                    Node node;
+                    node.x = fRand(xedge/2, xedge+xedge/2);
+                    node.y = fRand(yedge/2, yedge+yedge/2);
+                    this->nodes.push_back(node);
+                }
+
+                while (nodes.size() < nc) {
+                    Node node;
+                    node.x = fRand(x_bound/2+xedge/2, x_bound-xedge/2);
+                    node.y = fRand(yedge/2, yedge+yedge/2);
+                    this->nodes.push_back(node);
+                }
+            }
+            else if (e == 3) {
+                int radius = 399;
+                Node center;
+                center.x = 0;// x_bound / 2;
+                center.y = 0; //y_bound / 2;
+                for (int i = 0; i < nodes_card; i++) {
+                    Node node;
+                    node.y = -1;
+                    while (node.y < 0) {
+                        node.x = fRand(-x_bound/2, x_bound/2);
+                        double d = pow(radius, 2) - pow((node.x), 2);
+
+                        if (node.x > 0)
+                            node.y = sqrt(d);
+                        else
+                            node.y = -sqrt(d);
+
+                        if (d == 0)
+                            node.y = center.y;
+                    }
+                    this->nodes.push_back(node);
+                }
+
+            }
+            else if (e == 4) {
+                for (int i = 0; i < nodes_card; i++) {
+                    Node node;
+                    node.x = fRand(0.0, x_bound);
+                    node.y = fRand(0.0, y_bound);
+
+                    this->nodes.push_back(node);
+                }
+            }
 
             costs.reserve(nodes_card);
 
@@ -174,6 +234,18 @@ class Instance
 //
 //                ofs.close();
 //            ifs.close();
+
+            cout << "[";
+            for(vector<Node>::iterator n = this->nodes.begin(); n != this->nodes.end(); n++)
+                cout << n->x << ",";
+            cout << "]\n";
+
+            cout << "[";
+            for(vector<Node>::iterator n = this->nodes.begin(); n != this->nodes.end(); n++)
+                cout << n->y << ",";
+            cout << "]\n";
+
+
         }
 
         double fRand(double fMin, double fMax) {

@@ -12,11 +12,11 @@
 
 using namespace std;
 
-vector<double> simulation(int nodes_card, int x, int y, int start =0) {
+vector<double> simulation(int nodes_card, int x, int y, int exp, int start =0) {
     vector<double> data;
 
 	try {
-		Instance* instance = new Instance(nodes_card, x, y, start);
+		Instance* instance = new Instance(nodes_card, x, y, start, exp);
 		
         /* CPLEX */
 
@@ -41,15 +41,15 @@ vector<double> simulation(int nodes_card, int x, int y, int start =0) {
             0.6, 0.9, 10, 0, 28000, 16000, 20
         };
 
-        int i = 0;
+        int p = 0;
         if (nodes_card >= 40)
-            i = 7;
+            p = 7;
 
-        Solver solver((int) params[i+4], (int) params[i+5], params[i+3], params[i+2], params[i+1], params[i+0]);
+        Solver solver((int) params[p+4], (int) params[p+5], params[p+3], params[p+2], params[p+1], params[p+0]);
         vector<Solution> start_sols;
 
-        int pop_size = params[i+6];
-
+        int pop_size = params[p+6];
+        
         for (int i = 0; i < pop_size/2; i++) {
             Solution sol(*instance);
             solver.init_random_solution(sol);
@@ -67,11 +67,10 @@ vector<double> simulation(int nodes_card, int x, int y, int start =0) {
         Solution best_initial_solution = start_pop.best_solution();
     
         Solution best_solution = solver.solve(*instance, start_pop);
-        
+
         t2 = clock();
         gettimeofday(&tv2, NULL);
         
-        cout << "ITERATION: " << i << " - GENETIC ALGORITM" << endl;
         cout << "FROM init solution:\t"; 
         best_initial_solution.print();
         cout << "TO final solution:\t"; 
@@ -101,78 +100,100 @@ vector<double> simulation(int nodes_card, int x, int y, int start =0) {
     return data;
 };
 
-int main(int argc, char const *argv[])
+int main(int argc, char *argv[])
 {
-    int sim_start = 10;
-    int sim_end = 70;
-    int step = 10;
-    int rounds = 10;
+    for (int exp = 3; exp < 4; exp++) {
+        int sim_start = 50;
+        int sim_end = 50;
+        int step = 10;
+        int rounds = 1;
 
-    vector< vector<double> > rows;
-    for (int round = 0; round < rounds; round++) {
-        cout << "Round: " << round << endl;
-        for (int i = sim_start; i < sim_end+1; i += step) {
-            cout << endl << i << " nodes" << endl << endl;
-            vector<double> row = simulation(i, 800, 800);
-            //row.push_back(round);
-            rows.push_back(row);
+        if (exp == 1) {
+            sim_end = 30;
         }
-    }
-
-    int sim_steps = sim_end / step;
-    // save data to CSV file
-    ofstream ofs;
-    ofs.open("E1.csv", ofstream::out | ofstream::app); 
-    cout << "CPLEX_MEAN_TIME,CPLEX_MEAN_OBJ,GEN_MEAN_TIME,GEN_MEAN_OBJ,MEAN_POP,MATCH,EXCESS,STDD" << endl;
-
-    // means
-    for (int r = 0; r < sim_steps; r++) {
-        vector<double> means;
-        for (int i = 0; i < 5; i++) {
-            double acc = 0;
-            for(int j = 0+r; j < sim_steps*rounds; j += sim_steps) {
-                acc += rows[j][i];
-            }
-            ofs << (acc / rounds);
-            means.push_back(acc / rounds);
-            ofs << ",";
+        else if (exp == 4) {
+            sim_start = 100;
+            sim_end = 100;
+            rounds = 3;
         }
 
-        // match
-        int match = 0;
-        for(int j = 0+r; j < sim_steps*rounds; j += sim_steps) {
-            if ((int) floor(rows[j][1]) - (int) floor(rows[j][3]) == 0) {
-                match++;
+//        sim_start = 30;
+//        sim_end = 30;
+//        rounds = 1;
+
+        vector< vector<double> > rows;
+        for (int round = 0; round < rounds; round++) {
+            cout << "Round: " << round << endl;
+            for (int i = sim_start; i < sim_end+1; i += step) {
+                cout << endl << i << " nodes" << endl << endl;
+                vector<double> row = simulation(i, 800, 800, exp);
+                //row.push_back(round);
+                rows.push_back(row);
             }
         }
 
-        ofs << match * 100.0 / rounds;
-        ofs << ",";
+        int sim_steps = (sim_end-sim_start) / step;
+        if (sim_steps == 0)
+            sim_steps = 1;
         
-        // excess
-        ofs << ((means[3] - means[1]) / means[1]) * 100;
-        ofs << ",";
+        // save data to CSV file
+        ofstream ofs;
 
-        //cplex time stdd
-        double time_sqerr = 0;
-        for(int j = 0+r; j < sim_steps*rounds; j += sim_steps) {
-            time_sqerr += pow(rows[j][2] - means[2], 2);
+        char name[64];
+        snprintf(name, 64, "E%i.csv", exp);
+        char* result = (char*)(&name[0]);
+
+        ofs.open(result, ofstream::out | ofstream::app); 
+
+        ofs << "CPLEX_MEAN_TIME,CPLEX_MEAN_OBJ,GEN_MEAN_TIME,GEN_MEAN_OBJ,MEAN_POP,MATCH,EXCESS,STDDC,STDDM" << endl;
+
+        for (int r = 0; r < sim_steps; r++) {
+            // means
+            vector<double> means;
+            for (int i = 0; i < 5; i++) {
+                double acc = 0;
+                for(int j = 0+r; j < sim_steps*rounds; j += sim_steps)
+                    acc += rows[j][i];
+
+                ofs << (acc / rounds);
+                means.push_back(acc / rounds);
+                ofs << ",";
+            }
+
+            // match
+            int match = 0;
+            for(int j = 0+r; j < sim_steps*rounds; j += sim_steps)
+                if ((int) floor(rows[j][1]) - (int) floor(rows[j][3]) == 0)
+                    match++;
+
+            ofs << match * 100.0 / rounds;
+            ofs << ",";
+            
+            // excess
+            ofs << ((means[3] - means[1]) / means[1]) * 100;
+            ofs << ",";
+
+            //cplex time stdd
+            double time_sqerr = 0;
+            for(int j = 0+r; j < sim_steps*rounds; j += sim_steps)
+                time_sqerr += pow(rows[j][0] - means[0], 2);
+
+            ofs << sqrt(time_sqerr / rounds);
+
+            ofs << ",";
+
+            //meta time stdd
+            double obj_sqerr = 0;
+            for(int j = 0+r; j < sim_steps*rounds; j += sim_steps)
+                obj_sqerr += pow(rows[j][2] - means[2], 2);
+
+            ofs << sqrt(obj_sqerr / rounds);
+
+            ofs << "\n";
         }
-        ofs << sqrt(time_sqerr / rounds);
 
-        ofs << ",";
-
-        //meta obj stdd
-        double obj_sqerr = 0;
-        for(int j = 0+r; j < sim_steps*rounds; j += sim_steps) {
-            obj_sqerr += pow(rows[j][3] - means[3], 2);
-        }
-        ofs << sqrt(obj_sqerr / rounds);
-
-        ofs << "\n";
+        ofs.close();
     }
-
-    ofs.close();
 
     return 0;
 };
