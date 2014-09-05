@@ -126,24 +126,11 @@ class Instance
             }
             else if (e == 3) {
                 int radius = 399;
-                Node center;
-                center.x = 0;// x_bound / 2;
-                center.y = 0; //y_bound / 2;
                 for (int i = 0; i < nodes_card; i++) {
                     Node node;
-                    node.y = -1;
-                    while (node.y < 0) {
-                        node.x = fRand(-x_bound/2, x_bound/2);
-                        double d = pow(radius, 2) - pow((node.x), 2);
-
-                        if (node.x > 0)
-                            node.y = sqrt(d);
-                        else
-                            node.y = -sqrt(d);
-
-                        if (d == 0)
-                            node.y = center.y;
-                    }
+                    double theta = fRand(0, 360);
+                    node.x = radius*cos(theta);
+                    node.y = radius*sin(theta);
                     this->nodes.push_back(node);
                 }
 
@@ -235,15 +222,15 @@ class Instance
 //                ofs.close();
 //            ifs.close();
 
-            cout << "[";
-            for(vector<Node>::iterator n = this->nodes.begin(); n != this->nodes.end(); n++)
-                cout << n->x << ",";
-            cout << "]\n";
+            //cout << "[";
+            //for(vector<Node>::iterator n = this->nodes.begin(); n != this->nodes.end(); n++)
+            //    cout << n->x << ",";
+            //cout << "]\n";
 
-            cout << "[";
-            for(vector<Node>::iterator n = this->nodes.begin(); n != this->nodes.end(); n++)
-                cout << n->y << ",";
-            cout << "]\n";
+            //cout << "[";
+            //for(vector<Node>::iterator n = this->nodes.begin(); n != this->nodes.end(); n++)
+            //    cout << n->y << ",";
+            //cout << "]\n";
 
 
         }

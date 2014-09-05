@@ -102,11 +102,11 @@ vector<double> simulation(int nodes_card, int x, int y, int exp, int start =0) {
 
 int main(int argc, char *argv[])
 {
-    for (int exp = 3; exp < 4; exp++) {
-        int sim_start = 50;
-        int sim_end = 50;
+    for (int exp = 0; exp < 3; exp++) {
+        int sim_start = 10;
+        int sim_end = 70;
         int step = 10;
-        int rounds = 1;
+        int rounds = 10;
 
         if (exp == 1) {
             sim_end = 30;
@@ -132,9 +132,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        int sim_steps = (sim_end-sim_start) / step;
-        if (sim_steps == 0)
-            sim_steps = 1;
+        int sim_steps = ((sim_end-sim_start) / step) + 1;
         
         // save data to CSV file
         ofstream ofs;
