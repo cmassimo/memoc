@@ -102,12 +102,13 @@ vector<double> simulation(int nodes_card, int x, int y, int exp, int start =0) {
 
 int main(int argc, char *argv[])
 {
-    for (int exp = 0; exp < 3; exp++) {
-        int sim_start = 10;
-        int sim_end = 70;
+    for (int exp = 0; exp < 5; exp++) {
+        int sim_start = 50;
+        int sim_end = 50;
         int step = 10;
         int rounds = 10;
 
+        // overrides
         if (exp == 1) {
             sim_end = 30;
         }
@@ -119,7 +120,7 @@ int main(int argc, char *argv[])
 
 //        sim_start = 30;
 //        sim_end = 30;
-//        rounds = 1;
+        rounds = 1;
 
         vector< vector<double> > rows;
         for (int round = 0; round < rounds; round++) {
@@ -138,7 +139,7 @@ int main(int argc, char *argv[])
         ofstream ofs;
 
         char name[64];
-        snprintf(name, 64, "E%i.csv", exp);
+        snprintf(name, 64, "E%i.csv", exp+1);
         char* result = (char*)(&name[0]);
 
         ofs.open(result, ofstream::out | ofstream::app); 
