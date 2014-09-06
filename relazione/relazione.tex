@@ -3,6 +3,7 @@
 \usepackage[italian]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\usepackage{hyperref}
 
 \begin{document}
 
@@ -15,13 +16,13 @@
 \tableofcontents
 
     \section{Introduzione}
-    Il lavoro in oggetto si propone lo scopo di valutare attraverso alcune sperimentazioni la bont\`a di metodi
+        Il lavoro in oggetto si propone lo scopo di valutare attraverso alcune sperimentazioni la bont\`a di metodi
         di risoluzione del problema STSP tramite metaeuristica rispetto a pi\`u collaudati metodi esatti.
         I metodi che sfruttano le metaeuristiche e qualche forma di ricerca locale sono spesso utilizzati per le migliori
         performance in termini di rapidit\`a di calcolo ed uso delle risorse, a fronte di un possibile degrado nella qualit\`a
         dei risultati forniti in output.
 
-        In questo lavoro \`e stata implementata una ricerca tramite modello MILP e risolutore CPLEX e tramite algoritmo genetico.
+        In questo lavoro \`e stata implementata una ricerca tramite modello PLI e risolutore CPLEX e tramite algoritmo genetico.
 
     \section{Implementazione}
         L'implementazione della ricerca tramite metodo esatto \`e stata realizzata prendendo spunto da un'esercitazione di laboratorio
@@ -44,10 +45,10 @@
             \item la lista dei nodi (identificati dalle proprie coordinate nello spazio 2D)
         \end{enumerate}
 
-        La classe \emph{Model} racchiude il modello e la ricerca tramite MILP mentre le classi \emph{Solution}, \emph{Population} e \emph{Solver}
+        La classe \emph{Model} racchiude il modello e la ricerca tramite PLI mentre le classi \emph{Solution}, \emph{Population} e \emph{Solver}
         implementano l'algoritmo genetico.
         
-    \section{Risoluzione tramite modello MILP}
+    \section{Risoluzione tramite modello PLI}
         Per risolvere il problema tramite modello di programmazione lineare intera mista si \`e ricorsi alla modellazione dello stesso come problema di
         rete di flusso e si \`e utilizzato il risolutore CPLEX per la ricerca di una soluzione ottima.
         Il modello implementato \`e quello fornito nell'esercitazione 1, la verifica della correttezza \`e stata fatta mediante ispezione del file
@@ -86,8 +87,10 @@
             Vi \`e poi il parametro $max\_tot\_iterations$ che gestisce il massimo numero di popolazioni generabili dall'algoritmo ed \`e fissato
             ad $N*5$ dove $N$ \`e la cardinalit\`a dell'insieme dei nodi del grafo.
 
-            Infine il parametro $iterations\_without\_improvement$ che decide il limite di iterazioni improduttive oltre il quale passare dalla
+            Il parametro $iterations\_without\_improvement$ decide il limite di iterazioni improduttive oltre il quale passare dalla
             fase di intensificazione alla fase di diversificazione ed \`e fissato ad $N*2$.
+
+            La dimensione della popolazione \`e stato arbitrariamente fissato a 10 individui.
 
         \subsection{Codifica delle soluzioni}
             La codifica delle soluzioni adottata \`e quella detta ``path representation'', ovvero
@@ -249,14 +252,14 @@
 
     \section{Conclusioni}
         STSP \`e un problema inerentemente molto complesso, che nel caso esatto richiede moltissimo sforzo.
-        La ricerca nel caso esatto \`e inoltre piuttosto sensibile alla conformazione del problema, come involontariamente dimostrato
+        La ricerca nel caso esatto \`e inoltre piuttosto sensibile alla conformazione del problema, come involontariamente esemplificato
         dall'esperimento \textbf{E4}, mentre per contro la ricerca tramite metaeuristica sembra essere meno influenzata dalla struttura del grafo,
-        a meno di casi estremamente particolari (ad esempio la circonferenza di \textbf{E3}).
+        a meno di casi estremamente particolari (la circonferenza di \textbf{E4} appunto).
 
         Con questo lavoro si \`e visto, non senza sorpresa, che \`e possibile raggiungere un buon grado di approssimazione rispetto ad una
         soluzione ottima, con tempi di esecuzione estremamente ridotti.
 
         \`E opinione dell'autore che un fine-tuning dei parametri di ricerca con adeguata strategia \emph{grid search} possa dare risultati
-        ancora migliori rispetto a quelli forniti in questo documento.
+        ancora migliori rispetto a quelli esposti in questo documento.
 
 \end{document}
