@@ -125,13 +125,21 @@
             La codifica delle soluzioni adottata \`e quella detta ``path representation'', ovvero
             ogni soluzione \`e rappresentata da un vettore di interi (\emph{sequence}) che contiene
             gli indici del vettore dei nodi del grafo. L'ordine rappresentato nel vettore determina il cammino.
-            Ogni indice appare solo una volta nel vettore \emph{sequence} e questo fa si che si riesca a modellare
+            Se la soluzione \`e ammissibile ogni indice appare solo una volta nel vettore \emph{sequence} e questo fa si che si riesca a modellare
             un ciclo hamiltoniano.
 
+            La ricerca prevede la possibilit\`a di includere e generare soluzioni inammissibili all'interno di una popolazione.
+
         \subsection{Inizializzazione della popolazione iniziale}
-            La popolazione di partenza viene inizialmente generata in maniera casuale. La met\`a di questa popolazione
-            viene migliorata tramite una ricerca locale tramite \emph{Hill Climbing} che pu\`o essere o meno limitata
-            nel numero di iterazioni dal fatto che si sia scelto di iniziare diversificando o intensificando la ricerca.
+            La popolazione di partenza viene generata nel modo seguente:
+            \begin{itemize}
+                \item met\`a di questa popolazione \`e generata scegliendo casualmente un indice tra 0 e la cardinalit\`a dei nodi per ogni elemento del vettore \emph{sequence} (soluzioni potenzialmente inammissibili);
+                \item l'altra met\`a \`e generata permutando casualmente un vettore di indici univoci ordinati (soluzioni ammissibili).
+            \end{itemize}
+            Data questa popolazione, un'ulteriore passaggio ne seleziona casualmente una met\`a e la migliora tramite unsequencea
+            ricerca locale di tipo \emph{Hill Climbing} che pu\`o essere o meno limitata nel numero di iterazioni
+            dal fatto che si sia scelto di iniziare diversificando o intensificando la ricerca.
+
             La ricerca locale si basa su un vicinato 2-opt.
 
         \subsection{Selezione genitori}

@@ -105,7 +105,7 @@ Solution& Solution::hill_climbing(int current_iteration, int max_iterations) {
 
         Solution tmp = local_best;
 
-        if (!(abs(from-to) <= 1 || abs(from-to) == 49)) {
+        if (!(abs(from-to) <= 1 || abs(from-to) == this->sequence.size())) {
             if (from < to)
                 reverse(tmp.sequence.begin()+from, tmp.sequence.begin()+to);
             else
