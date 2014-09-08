@@ -22,7 +22,7 @@
         performance in termini di rapidit\`a di calcolo ed uso delle risorse, a fronte di un possibile degrado nella qualit\`a
         dei risultati forniti in output.
 
-        In questo lavoro \`e stata implementata una ricerca tramite modello PLI e risolutore CPLEX e tramite algoritmo genetico.
+        In questo lavoro \`e stata implementata una ricerca tramite modello PLI con risolutore CPLEX ed una ricerca tramite algoritmo genetico.
 
     \section{Implementazione}
         L'implementazione della ricerca tramite metodo esatto \`e stata realizzata prendendo spunto da un'esercitazione di laboratorio
@@ -32,72 +32,101 @@
         sulle dispense del corso, cercando per quanto possibile di introdurre qualche elemento di originalit\`a e di miglioramento rispetto
         allo schema standard dell'algoritmo proposto.
 
-        \subsection{Note}
+        \subsection{Note implementative}
         Durante gli esperimenti entrambe le ricerche partono da un'istanza del problema comune, modellata nella classe \emph{Instance}.
-        L'istanza rappresenta il grafo dei punti che dovranno essere effettuati sulla piastra.
+        Un oggetto della classe \emph{Instance} rappresenta il grafo dei fori che dovranno essere effettuati sulla piastra.
         In particolare \`e descritta da:
 
         \begin{enumerate}
-            \item cardinalit\`a dell'insieme dei nodi del grafo
+            \item cardinalit\`a dell'insieme dei nodi del grafo (numero di fori)
             \item dimensioni della piastra (limite alle coordinate dei punti)
-            \item il nodo di partenza
             \item la matrice delle distanze tra i nodi
             \item la lista dei nodi (identificati dalle proprie coordinate nello spazio 2D)
         \end{enumerate}
 
         La classe \emph{Model} racchiude il modello e la ricerca tramite PLI mentre le classi \emph{Solution}, \emph{Population} e \emph{Solver}
         implementano l'algoritmo genetico.
-        
+
     \section{Risoluzione tramite modello PLI}
         Per risolvere il problema tramite modello di programmazione lineare intera mista si \`e ricorsi alla modellazione dello stesso come problema di
         rete di flusso e si \`e utilizzato il risolutore CPLEX per la ricerca di una soluzione ottima.
         Il modello implementato \`e quello fornito nell'esercitazione 1, la verifica della correttezza \`e stata fatta mediante ispezione del file
         \emph{stsp.lp} generato dal risolutore.
 
+        \subsection{Il modello}
+        
+        La classe \emph{Model} contiene la definizione del modello per il problema, la modellazione implementata si discosta dall'approccio tradizionale che prevede la definizione di
+        un problema di assegnamento con vincoli di subtour elimination.
+        Modellando il problema come rete di flusso, si ottiene un modello con vincoli pi\`u semplici ed in numero nettamente inferiore.
+
+        Si noti che, essendo il grafo che modella l'insieme dei fori un grafo completo, tra le variabili del modello che indicano la quantit\`a di flusso utilizzata ($x_{ij}$)
+        vengono inserite nel modello anche le variabili relative ai cappi di ogni nodo ($x_{ij}$ con $i = j$).
+
+        A questi archi viene associato un costo nullo in quanto si presume che la punta diamantata non sostenga alcun costo per rimanere ferma nello stesso punto; in virt\`u di questo
+        anche se questi archi vengono inseriti nella soluzione risultano ininfluenti nel calcolo della funzione obiettivo.
+        
+
     \section{Risoluzione tramite algoritmo genetico}
-        L'algoritmo implementato segue il seguente schema:
+        L'algoritmo genetico implementato segue il seguente schema:
         \begin{enumerate}
             \item codifica delle soluzioni del problema;
             \item inizializzazione di una popolazione iniziale;
             \item ripetizione fino al soddisfacimento di condizioni di arresto:
                 \begin{enumerate}
-                    \item seleziona coppie di parent dalla popolazione corrente;
-                    \item ricombina i parent generando due figli per ogni coppia;
-                    \item rinnova la popolazione corrente selezionado nuovi individui
-                        tra i figli appena generati, sulla base della misura di fitness;
+                    \item selezione coppie di parent dalla popolazione corrente;
+                    \item generazione della progenie tramite ricombinazione delle coppie di parent;
+                    \item rinnovamento della popolazione corrente tramite selezione dei nuovi individui
+                        tra quelli appena generati, sulla base della misura di fitness;
                 \end{enumerate}
-            \item restituisci la soluzione migliore generata.
+            \item restituzione della soluzione migliore generata.
         \end{enumerate}
 
         \subsection{Parametri e calibrazione}
-            Tutti i paramtri sono stati calibrati a mano per mancanza di tempo anche se sarebbe stato preferibile un approccio di tipo
-            \emph{grid search}.
-            I parametri che determinano una variazione nella condotta della ricerca con metaeuristica sono essenzialmente due:
+            Tutti i paramtri sono stati calibrati tramite \emph{grid search} a partire da un insieme di combinazioni ipoteticamente plausibile.
+            I parametri coinvolti nella calibrazione sono:
             \begin{itemize}
-                \item $accept\_prob$ ovvero un valore di probabilit\`a che determina:
+                \item $accept\_prob\ (AP)$ ovvero un valore di probabilit\`a che determina:
                     \begin{itemize}
-                        \item l'accettazione di nuove soluzioni generate per ricombinazione;
-                        \item l'applicazione della mutazione per inversione invece della rottura / riparazione della soluzione
+                        \item l'accettazione diretta di nuove soluzioni generate per ricombinazione;
+                        \item l'applicazione della mutazione per inversione piuttosto che la rottura / riparazione della soluzione;
                     \end{itemize}
-                    Questo parametro varia tra i valori $0.99$ in fase di intensificazione e $0.90$ in fase di diversificazione.
-                \item $hc\_iterations$ che determina il numero di iterazioni massime nella ricerca locale; durante le fasi di
-                    intensificazione assume il valore $0$ (iterazioni illimitate), mentre in fase di diversificazione assume il valore 3.
+                \item $hc\_iterations\ (HCIT)$ che determina il numero di iterazioni massime nella ricerca locale;
             \end{itemize}
 
-            Vi \`e poi il parametro $max\_tot\_iterations$ che gestisce il massimo numero di popolazioni generabili dall'algoritmo ed \`e fissato
-            ad $N*5$ dove $N$ \`e la cardinalit\`a dell'insieme dei nodi del grafo.
+            La procedura di grid search ha calibrato questi due parametri in maniera differente per la fase di diversificazione (D) rispetto alla fase di intensificazione (I).
 
-            Il parametro $iterations\_without\_improvement$ decide il limite di iterazioni improduttive oltre il quale passare dalla
-            fase di intensificazione alla fase di diversificazione ed \`e fissato ad $N*2$.
+            All'interno della stessa procedura sono stati inoltre calibrati i parametri:
+            \begin{itemize}
+                \item $max\_tot\_iterations\ (MIT)$ che limita il massimo numero di popolazioni generabili dall'algoritmo;
+                \item $iterations\_without\_improvement\ (ITWOI)$ che decide il limite di iterazioni improduttive (nelle quali la popolazione generata non apporta alcun miglioramento alla f.o.)
+                    oltre il quale passare dalla fase di intensificazione alla fase di diversificazione;
+                \item $pop\_size (PSZ)$ che determina la dimensione della popolazione.
+            \end{itemize}
 
-            La dimensione della popolazione \`e stato arbitrariamente fissato a 10 individui.
+            Come accennato in precedenza si \`e partiti da un insieme di combinazioni di valori iniziale, si \`e quindi selezionata la combinazione con il miglior comportamento a fronte di 10 iterazioni
+            di ricerca per un'istanza di problema (50 nodi fissi e coefficienti di costo fissati), da questa combinazione ne sono state derivate altre due variando leggermente alcuni parametri
+            per ottenere effetti diversi e ne \`e stato studiato il comportamento sulla base di 10 iterazioni di ricerca su grafo fissato (50 nodi) con coefficienti di costo causali per osservarle
+            in un ambiente pi\`u simile a quello degli esperimenti successivi.
+
+            Dopo un leggero fine tuning dei valori le due combinazioni sono state mantenute entrambe e sono le seguenti:
+
+            \begin{center}
+                \begin{tabular}{|l|l|l|l|l|l|l|l|}  \hline
+                    & $AP (D)$ & $AP (I)$ & $HCIT (D)$ & $HCIT (I)$ & $MIT$ & $ITWOI$ & $PSZ$ \\ \hline
+
+                    C1 & 0.6        & 0.9        & 4       & 0           & 22000           & 10000            & 10    \\ \hline
+
+                    C2 & 0.6        & 0.9        & 10       & 0           & 28000           & 10000            & 20    \\ \hline 
+                \end{tabular}
+            \end{center}
+
 
         \subsection{Codifica delle soluzioni}
             La codifica delle soluzioni adottata \`e quella detta ``path representation'', ovvero
             ogni soluzione \`e rappresentata da un vettore di interi (\emph{sequence}) che contiene
             gli indici del vettore dei nodi del grafo. L'ordine rappresentato nel vettore determina il cammino.
             Ogni indice appare solo una volta nel vettore \emph{sequence} e questo fa si che si riesca a modellare
-            un ciclo Hamiltoniano.
+            un ciclo hamiltoniano.
 
         \subsection{Inizializzazione della popolazione iniziale}
             La popolazione di partenza viene inizialmente generata in maniera casuale. La met\`a di questa popolazione
@@ -174,13 +203,13 @@
     \section{Risultati delle simulazioni}
         
         \subsection{Esperimenti}
-        I parametri degli esperimenti (indicati con \textbf{Ei}) effettuati sono stati i seguenti:
+        I parametri degli esperimenti effettuati sono stati i seguenti:
         \begin{description}
-            \item[E1] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra fissate (500x500);
-            \item[E2] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra crescenti: 100x100--700x700;
-            \item[E3] come \textbf{E1} ma partendo con una fase di intensificazione invece che diversificazione;
-            \item[E4] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione dei punti su una circonferenza e dimensioni di piastra fissate (500x500).
-            \item[E5] insieme dei nodi di cardinalit\`a 100, inizializzazione casuale dei punti e dimensioni di piastra fissate (500x500).
+            \item[E1] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra fissate (800x800);
+            \item[E2] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra molto ridotte: 400x16;
+            \item[E3] insieme dei nodi di cardinalit\`a 10--50 con step 10, inizializzazione casuale dei punti all'interno di 4 aree fissate (200x200) dopo aver suddiviso il piano (800x800) in 4 quadranti;
+            \item[E4] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione dei punti su una circonferenza e dimensioni di piastra fissate (800x800).
+            \item[E5] insieme dei nodi di cardinalit\`a 100, inizializzazione casuale dei punti e dimensioni di piastra fissate (800x800).
         \end{description}
 
         \subsection{Risultati}
@@ -189,43 +218,56 @@
 
                 \includegraphics[scale=0.7]{img/exavgtime}
 
-                Si nota una crescita esponenziale all'aumentare della dimensione del problema.
+                I tempi di ricerca tendono a crescere esponenzialmente con l'aumento della cardinalit\`a dell'insieme dei nodi.
+                Come facilmente prevedibile la conformazione del grafo incide pesantemente sulle performance del risolutore, con l'esperimento \textbf{E4} (fori su una circonferenza) che non eccede
+                mai i 30 secondi e gli esperimenti \textbf{E2} (piastra molto piccola) ed \textbf{E3} (cluster) i cui tempi di ricerca crescono molto velocemente anche per dimensioni di problema molto piccole.
 
-                Il valore molto elevato che si riscontra in \textbf{E4} rispetto agli altri esperimenti \`e probabilmente dovuto all'assenza di un controllo di collisione
-                nella generazione dei punti sulla circonferenza, complicando di molto il lavoro della fase di Branch and Bound.
 
-                \textbf{E5} si attesta su $1454.63$ secondi.
+                \textbf{E5} si attesta su $496,04$ secondi.
+
+                \includegraphics[scale=0.7]{img/exadevtime}
+
+                La deviazione standard si mantiene contenuta a parte nei casi pi\`u complessi per ogni esperimento.
 
                 \includegraphics[scale=0.7]{img/exavgobj}
 
-                I valori alti in \textbf{E2} sono dovuti all'espansione dell'area della piastra mentre quelli molto bassi in \textbf{E4} alla
-                conformazione del grafo (circonferenza).
+                
+                La media della f.o. si mantiene praticamente costante in \textbf{E2} date le ridotte dimensioni di piastra e di nodi, in \textbf{E4} data la disposizione dei nodi del grafo che tendono sempre di pi\`u ad
+                approssimare una circonferenza.
 
-                Valore in \textbf{E5}: $4001.42$.
+                Valore in \textbf{E5}: $6023,59$.
 
             \subsubsection{Ricerca con metaeuristica}
 
                     \includegraphics[scale=0.7]{img/gavgtime}
 
-                    Come si pu\`o notare i valori sono estremamente pi\`u contenuti rispetto alla ricerca esatta, anche per problemi di dimensioni
-                    considerevoli.
+                    La crescita dei tempi di ricerca rispecchia esponenzialmente l'aumentare del numero di nodi fino alla dimensione 40 dove, si ricorda, entra in gioco un nuovo set di parametri di calibrazione della ricerca che volutamente incrementa (linearmente) il tempo dedicato alla ricerca di una soluzione pi\`u vicina all'ottimo.
 
-                    Tempo impiegato in \textbf{E5}: $12.3757$ secondi.
+                    I tempi rimangono comunque inferiori a quelli della ricerca esatta di quasi un ordine di grandezza.
+
+                    Tempo impiegato in \textbf{E5}: $58,23$ secondi.
+
+                    \includegraphics[scale=0.7]{img/gadevtime}
+
+                    La deviazione standard dei tempi di ricerca rimane irrisoria nella maggior parte dei casi, salvo appunto nei problemi piu` complessi in termini di dimensioni.
 
                     \includegraphics[scale=0.7]{img/gavgobj}
 
-                    La perdita di performance rispetto all'ottimalit\`a rimane perlopi\`u contenuta.
+                    La perdita di performance rispetto all'ottimalit\`a rimane estremamente contenuta.
 
-                    Aumentando anche di un solo ordine di grandezza il numero di iterazioni massime permesse all'algoritmo si otteneva un discreto
-                    avvicinamento ai valori della soluzione ottima, andando per\`o ad incidere considerevolmente sui tempi di esecuzione per i problemi
-                    di dimensione pi\`u modesta.
+                    In fase di calibrazione dei parametri di ricerca si \`e data priorit\`a al contenimento dei tempi di ricerca rispetto al miglioramento del valore della funzione obiettivo.
 
-                    Valore in \textbf{E5}: $5683.34$ a partire da un valore nella popolazione iniziale di $23367.6$.
+                    Il cambio di velocit\`a determinato dal differente set di parametri oltre la dimensione 30 \`e stato introdotto visto il corrispondente forte incremento dei tempi di ricerca del
+                    risolutore CPLEX, e questo ha consentito una migliore approssimazione del risultato ottimo.
+
+                    Valore in \textbf{E5}: $6576,51$.
 
                     \includegraphics[scale=0.7]{img/popavg}
 
-                    Si noti come la scarsa complessit\`a del problema in \textbf{E4} influisca drasticamente sul numero di iterazioni necessarie per raggiungere
-                    una soluzione stabile.
+                    Il numero di iterazioni cresce abbastanza linearmente con l'aumentare della dimensione del problema fino a raggiungere un valore massimale in corrispondenza del problema con 30 nodi
+                    dovuto al limite imposto al numero di iterazioni (popolazioni).
+
+                    I valori riprendono a salire perch\'e il limite viene incrementato a partire dalla suddetta dimensione.  
 
                     In \textbf{E5}: 428 popolazioni in media.
 
@@ -233,22 +275,20 @@
 
                     \includegraphics[scale=0.7]{img/match}
 
-                    La ricerca con metaeuristica si comporta in maniera sostanzialmente identica alla ricerca con metodo esatto per dimensioni di problema modeste,
+                    La ricerca con metaeuristica si comporta in maniera sostanzialmente molto simile alla ricerca con metodo esatto per dimensioni di problema modeste,
                     decrescendo nel numero di match man mano che il problema diviene pi\`u complesso.
                     
-                    Come detto in precedenza si sono notati sostanziali miglioramenti per grafi con molti nodi aumentando il numero massimo di nuove generazioni permesse, a discapito per\`o
-                    del tempo di esecuzione nel caso di problemi pi\`u semplici.
+                    Come detto in precedenza si sono notati sostanziali miglioramenti per grafi con molti nodi aumentando il numero massimo di nuove generazioni permesse, perdendo qualcosa
+                    in termini di tempi di risposta.
 
                     In \textbf{E5} non si \`e verificato match.
 
                     \includegraphics[scale=0.7]{img/excess}
 
-                    Da questo grafico si pu\`o notare che la discrepanza nei risultati tra le due ricerche cresce abbastanza linearmente
-                    con l'aumentare della complessit\`a del problema.
-                    Il valore massimo rimane sempre comunque sotto il $30\%$.
+                    Per quanto il grafico precedente mostri percentuali di match non molto elevate, si noti come l'eccesso del valore della f.o. restituito dalla ricerca con metaeuristica rispetto al valore
+                    ottenuto con metodo esatto sia in realt\`a estremamente contenuto e non superi mai il $5\%$.
 
-
-                    In \textbf{E5} l'eccesso \`e del $42\%$.
+                    In \textbf{E5} l'eccesso \`e del $9\%$.
 
     \section{Conclusioni}
         STSP \`e un problema inerentemente molto complesso, che nel caso esatto richiede moltissimo sforzo.

@@ -86,6 +86,7 @@ class Solver
         */
         bool init_starting_population(Population &start_pop, vector<Solution> &start_solutions, const Instance& inst) {
             
+            random_shuffle(start_pop.individuals.begin(), start_pop.individuals.end());
             int i = 0; 
             while((int) start_pop.individuals.size() < start_pop.sol_card/2) {
                 // lancia hill climbing a partire da random solution
