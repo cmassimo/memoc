@@ -112,7 +112,7 @@ class Solution
         /** crossover operator (Ricombinazione)
          * Implements order-crossover strategy
          * Genera le due soluzioni figlie con cut-point crossover.
-         * accetta soluzioni ammissibili con prob 0.85 e inamissibili
+         * accetta soluzioni ammissibili con prob accept_prob e inamissibili
          * con prob complementare.
          */
         vector<Solution> crossover(const Solution& other, const double accept_prob, const int hc_iterations) {

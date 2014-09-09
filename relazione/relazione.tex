@@ -87,8 +87,8 @@
             \begin{itemize}
                 \item $accept\_prob\ (AP)$ ovvero un valore di probabilit\`a che determina:
                     \begin{itemize}
-                        \item l'accettazione diretta di nuove soluzioni generate per ricombinazione;
-                        \item l'applicazione della mutazione per inversione piuttosto che la rottura / riparazione della soluzione;
+                        \item l'accettazione diretta di nuove soluzioni generate per ricombinazione (\emph{Solution::crossover()});
+                        \item l'applicazione della mutazione per inversione piuttosto che la rottura / riparazione della soluzione (\emph{Solution::mutate()});
                     \end{itemize}
                 \item $hc\_iterations\ (HCIT)$ che determina il numero di iterazioni massime nella ricerca locale;
             \end{itemize}
@@ -103,7 +103,7 @@
                 \item $pop\_size (PSZ)$ che determina la dimensione della popolazione.
             \end{itemize}
 
-            Come accennato in precedenza si \`e partiti da un insieme di combinazioni di valori iniziale, si \`e quindi selezionata la combinazione con il miglior comportamento a fronte di 10 iterazioni
+            Come accennato in precedenza si \`e partiti da un insieme di 10 combinazioni di valori iniziale, si \`e quindi selezionata la combinazione con il miglior comportamento a fronte di 10 iterazioni
             di ricerca per un'istanza di problema (50 nodi fissi e coefficienti di costo fissati), da questa combinazione ne sono state derivate altre due variando leggermente alcuni parametri
             per ottenere effetti diversi e ne \`e stato studiato il comportamento sulla base di 10 iterazioni di ricerca su grafo fissato (50 nodi) con coefficienti di costo causali per osservarle
             in un ambiente pi\`u simile a quello degli esperimenti successivi.
@@ -123,7 +123,7 @@
 
         \subsection{Codifica delle soluzioni}
             La codifica delle soluzioni adottata \`e quella detta ``path representation'', ovvero
-            ogni soluzione \`e rappresentata da un vettore di interi (\emph{sequence}) che contiene
+            ogni soluzione \`e rappresentata da un vettore di interi (\emph{Solution::sequence}) che contiene
             gli indici del vettore dei nodi del grafo. L'ordine rappresentato nel vettore determina il cammino.
             Se la soluzione \`e ammissibile ogni indice appare solo una volta nel vettore \emph{sequence} e questo fa si che si riesca a modellare
             un ciclo hamiltoniano.
@@ -133,14 +133,15 @@
         \subsection{Inizializzazione della popolazione iniziale}
             La popolazione di partenza viene generata nel modo seguente:
             \begin{itemize}
-                \item met\`a di questa popolazione \`e generata scegliendo casualmente un indice tra 0 e la cardinalit\`a dei nodi per ogni elemento del vettore \emph{sequence} (soluzioni potenzialmente inammissibili);
-                \item l'altra met\`a \`e generata permutando casualmente un vettore di indici univoci ordinati (soluzioni ammissibili).
+                \item met\`a di questa popolazione \`e generata scegliendo casualmente un valore tra 0 e la cardinalit\`a dell'insieme dei nodi per ogni elemento del vettore \emph{Solution::sequence} (dando la possibilit\`a di generare soluzioni inammissibili);
+                \item l'altra met\`a \`e generata permutando casualmente il vettore \emph{sequence} dopo averlo inizializzato con la lista dei propri indici ordinati (soluzioni ammissibili).
             \end{itemize}
-            Data questa popolazione, un'ulteriore passaggio ne seleziona casualmente una met\`a e la migliora tramite unsequencea
+            Data questa popolazione, un'ulteriore passaggio ne seleziona casualmente una met\`a e la migliora tramite una
             ricerca locale di tipo \emph{Hill Climbing} che pu\`o essere o meno limitata nel numero di iterazioni
             dal fatto che si sia scelto di iniziare diversificando o intensificando la ricerca.
 
-            La ricerca locale si basa su un vicinato 2-opt.
+            La ricerca locale si basa su un vicinato 2-opt limitato (non completo) per motivi di performance; il limite nella cardinalit\`a
+            dell'insieme dei vicini \`e impostato a 3 volte la dimensione del problema in termini di nodi.
 
         \subsection{Selezione genitori}
             La fase di selezione degli individui per la ricombinazione procede selezionando dalla popolazione un certo numero
@@ -215,7 +216,7 @@
         \begin{description}
             \item[E1] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra fissate (800x800);
             \item[E2] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione casuale dei punti e dimensioni di piastra molto ridotte: 400x16;
-            \item[E3] insieme dei nodi di cardinalit\`a 10--50 con step 10, inizializzazione casuale dei punti all'interno di 4 aree fissate (200x200) dopo aver suddiviso il piano (800x800) in 4 quadranti;
+            \item[E3] insieme dei nodi di cardinalit\`a 10--50 con step 10, inizializzazione casuale dei punti con disposizione a cluster su dimensioni di piastra fissate (800x800);
             \item[E4] insieme dei nodi di cardinalit\`a 10--70 con step 10, inizializzazione dei punti su una circonferenza e dimensioni di piastra fissate (800x800).
             \item[E5] insieme dei nodi di cardinalit\`a 100, inizializzazione casuale dei punti e dimensioni di piastra fissate (800x800).
         \end{description}
